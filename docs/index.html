@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Impostor — the party word game</title>
+  <meta name="description" content="Everyone knows the secret word. One of you is lying. A free party game for Android — pass-and-play or online with friends." />
+  <meta property="og:title" content="Impostor — the party word game" />
+  <meta property="og:description" content="Everyone knows the secret word. One of you is lying. Free Android party game." />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0F1220;
+      --card: #1B1F33;
+      --border: #2C3352;
+      --accent: #FF5470;
+      --secondary: #22D3EE;
+      --text: #F5F6FA;
+      --dim: #9AA0B5;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.6;
+    }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 48px 24px 64px; }
+    .hero { text-align: center; padding: 32px 0 40px; }
+    .hero .badge { font-size: 64px; display: block; margin-bottom: 8px; }
+    h1 { font-size: 44px; letter-spacing: 4px; font-weight: 800; }
+    .tagline { color: var(--dim); font-size: 19px; margin-top: 10px; }
+    .cta {
+      display: inline-block;
+      margin-top: 28px;
+      background: var(--accent);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 16px 36px;
+      border-radius: 16px;
+      transition: transform 0.1s ease, opacity 0.15s ease;
+    }
+    .cta:hover { opacity: 0.9; transform: translateY(-1px); }
+    .cta-note { color: var(--dim); font-size: 13px; margin-top: 12px; }
+    .cta-note a { color: var(--secondary); }
+    section { margin-top: 48px; }
+    h2 { font-size: 22px; margin-bottom: 16px; }
+    .steps { display: grid; gap: 12px; }
+    .step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      gap: 16px;
+      align-items: baseline;
+    }
+    .step .n { color: var(--accent); font-weight: 800; font-size: 20px; }
+    .step p { color: var(--dim); font-size: 15px; }
+    .step strong { color: var(--text); display: block; font-size: 16px; margin-bottom: 2px; }
+    .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .feature {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      font-size: 14px;
+      color: var(--dim);
+    }
+    .feature strong { color: var(--text); display: block; font-size: 15px; margin-bottom: 4px; }
+    footer { margin-top: 56px; text-align: center; color: var(--dim); font-size: 13px; }
+    footer a { color: var(--secondary); }
+    @media (max-width: 480px) {
+      h1 { font-size: 34px; }
+      .features { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <span class="badge">🕵️</span>
+      <h1>IMPOSTOR</h1>
+      <p class="tagline">Everyone knows the secret word.<br />One of you is lying.</p>
+      <a class="cta" href="https://github.com/imnb57/impostor/releases/latest/download/impostor.apk">
+        ⬇️&nbsp; Download for Android
+      </a>
+      <p class="cta-note">
+        Free .apk — Android 7+. Your phone may ask you to allow
+        "install unknown apps"; that's normal for apps outside the Play Store.
+      </p>
+    </div>
+
+    <section>
+      <h2>How it works</h2>
+      <div class="steps">
+        <div class="step"><span class="n">1</span>
+          <p><strong>Get your secret role</strong>Everyone sees the same secret word — except the impostor, who only knows the category.</p>
+        </div>
+        <div class="step"><span class="n">2</span>
+          <p><strong>Describe &amp; bluff</strong>Take turns describing the word without saying it. The impostor has to bluff along.</p>
+        </div>
+        <div class="step"><span class="n">3</span>
+          <p><strong>Vote out the liar</strong>Discuss, accuse, and vote. Catch the impostor — or get fooled.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Play your way</h2>
+      <div class="features">
+        <div class="feature"><strong>🎉 Pass &amp; Play</strong>One phone, zero setup. Pass it around the room — works offline.</div>
+        <div class="feature"><strong>🌐 Online rooms</strong>Create a room, friends join with a 4-letter code from their own phones.</div>
+        <div class="feature"><strong>🔁 Reconnect-proof</strong>App crashed mid-game? Rejoin the room and pick up where you left off.</div>
+        <div class="feature"><strong>🧩 3 categories</strong>Food &amp; Drink, Animals, and Places — with more packs on the way.</div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Made with React Native + Firebase · <a href="https://github.com/imnb57/impostor">Source on GitHub</a></p>
+    </footer>
+  </div>
+</body>
+</html>
