@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7d106898-3f28-4f73-a4d0-e959a119384c"
+      }
+    },
+    "owner": "codernitesh"
   }
 }
