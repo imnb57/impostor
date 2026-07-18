@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -7,7 +8,7 @@ import { Screen } from '../components/ui/Screen';
 import { Stepper } from '../components/ui/Stepper';
 import { Text } from '../components/ui/Text';
 import { Toggle } from '../components/ui/Toggle';
-import { CATEGORIES } from '../constants/categories';
+import { CATEGORY_OPTIONS } from '../constants/categories';
 import { gradientStops, PALETTES } from '../design/palettes';
 import { radius, space } from '../design/tokens';
 import { useTheme } from '../design/useTheme';
@@ -99,10 +100,12 @@ export function SettingsScreen({ navigation }: ScreenProps<'Settings'>) {
             plusDisabled={s.defaultTimerSeconds >= 600}
           />
           <View style={[styles.divider, { backgroundColor: t.stroke }]} />
-          <View style={styles.categoryRow}>
+          {/* Label above rather than beside: a fixed-width chip per category
+              overflowed the row on narrow screens with nowhere to scroll. */}
+          <View style={styles.categoryBlock}>
             <Text variant="bodyStrong">Category</Text>
             <View style={styles.categoryChips}>
-              {CATEGORIES.map((c) => {
+              {CATEGORY_OPTIONS.map((c) => {
                 const on = c.id === s.defaultCategoryId;
                 return (
                   <Pressable
@@ -113,11 +116,14 @@ export function SettingsScreen({ navigation }: ScreenProps<'Settings'>) {
                     }}
                     style={[
                       styles.miniChip,
-                      { backgroundColor: on ? t.accent : t.surface, borderColor: on ? t.accent : t.stroke },
+                      {
+                        backgroundColor: on ? t.accent : t.surface,
+                        borderColor: on ? t.accent : t.stroke,
+                      },
                     ]}
                   >
                     <Text variant="caption" color={on ? t.onAccent : t.textDim}>
-                      {c.emoji}
+                      {c.emoji}  {c.name}
                     </Text>
                   </Pressable>
                 );
@@ -133,7 +139,7 @@ export function SettingsScreen({ navigation }: ScreenProps<'Settings'>) {
             <Text variant="caption" dim>
               Version
             </Text>
-            <Text variant="caption">1.2.0</Text>
+            <Text variant="caption">{Constants.expoConfig?.version ?? '—'}</Text>
           </View>
           <View style={[styles.divider, { backgroundColor: t.stroke }]} />
           <Button
@@ -206,19 +212,13 @@ const styles = StyleSheet.create({
   themeCell: { alignItems: 'center', gap: space.sm, width: 64 },
   swatch: { width: 56, height: 56, borderRadius: radius.lg },
   divider: { height: 1, marginVertical: space.sm },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: space.sm,
-    gap: space.md,
-  },
-  categoryChips: { flexDirection: 'row', gap: space.sm },
+  categoryBlock: { paddingVertical: space.sm, gap: space.md },
+  categoryChips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   miniChip: {
-    width: 40,
-    height: 40,
     borderRadius: radius.pill,
     borderWidth: 1,
+    paddingVertical: space.sm + 2,
+    paddingHorizontal: space.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
