@@ -152,8 +152,14 @@ h1{
 h1 .lie{
   background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
   font-style:italic;
-  /* descenders on y/g sit outside the clip box without this */
+  /* Italic glyphs overhang their advance width, and background-clip:text cuts
+     at the fragment edge — the trailing "s" of a wrapped line lost its tail.
+     box-decoration-break:clone applies the padding to every line fragment,
+     not just the first and last. */
   padding-bottom:.09em;
+  padding-right:.1em;
+  -webkit-box-decoration-break:clone;
+  box-decoration-break:clone;
 }
 .hero p.sub{
   color:var(--dim);font-size:clamp(16.5px,2vw,20px);line-height:1.6;font-weight:400;
