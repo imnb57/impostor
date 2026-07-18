@@ -1,0 +1,50 @@
+import { getCategory } from '../constants/categories';
+import type { VoteTally } from '../types';
+
+export function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+export function pickWord(categoryId: string): string {
+  return pickRandom(getCategory(categoryId).words);
+}
+
+/** Pick `count` distinct random items from `items`. */
+export function sample<T>(items: T[], count: number): T[] {
+  const pool = [...items];
+  const picked: T[] = [];
+  while (picked.length < count && pool.length > 0) {
+    const i = Math.floor(Math.random() * pool.length);
+    picked.push(pool.splice(i, 1)[0]);
+  }
+  return picked;
+}
+
+export function tallyVotes(votes: Record<string, string>): VoteTally {
+  const counts: Record<string, number> = {};
+  for (const target of Object.values(votes)) {
+    counts[target] = (counts[target] ?? 0) + 1;
+  }
+  let topCount = 0;
+  for (const n of Object.values(counts)) {
+    if (n > topCount) topCount = n;
+  }
+  const topTargets = Object.keys(counts).filter((id) => counts[id] === topCount);
+  return { counts, topTargets, topCount };
+}
+
+// No O/0 or I/1 so codes are easy to read out loud.
+const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+export function generateRoomCode(length = 4): string {
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return code;
+}
+
+/** Impostors must stay a strict minority. */
+export function maxImpostors(playerCount: number): number {
+  return Math.max(1, Math.ceil(playerCount / 2) - 1);
+}
