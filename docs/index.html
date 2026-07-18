@@ -1,125 +1,562 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Impostor — the party word game</title>
-  <meta name="description" content="Everyone knows the secret word. One of you is lying. A free party game for Android — pass-and-play or online with friends." />
-  <meta property="og:title" content="Impostor — the party word game" />
-  <meta property="og:description" content="Everyone knows the secret word. One of you is lying. Free Android party game." />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0F1220;
-      --card: #1B1F33;
-      --border: #2C3352;
-      --accent: #FF5470;
-      --secondary: #22D3EE;
-      --text: #F5F6FA;
-      --dim: #9AA0B5;
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      line-height: 1.6;
-    }
-    .wrap { max-width: 640px; margin: 0 auto; padding: 48px 24px 64px; }
-    .hero { text-align: center; padding: 32px 0 40px; }
-    .hero .badge { font-size: 64px; display: block; margin-bottom: 8px; }
-    h1 { font-size: 44px; letter-spacing: 4px; font-weight: 800; }
-    .tagline { color: var(--dim); font-size: 19px; margin-top: 10px; }
-    .cta {
-      display: inline-block;
-      margin-top: 28px;
-      background: var(--accent);
-      color: var(--text);
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 18px;
-      padding: 16px 36px;
-      border-radius: 16px;
-      transition: transform 0.1s ease, opacity 0.15s ease;
-    }
-    .cta:hover { opacity: 0.9; transform: translateY(-1px); }
-    .cta-note { color: var(--dim); font-size: 13px; margin-top: 12px; }
-    .cta-note a { color: var(--secondary); }
-    section { margin-top: 48px; }
-    h2 { font-size: 22px; margin-bottom: 16px; }
-    .steps { display: grid; gap: 12px; }
-    .step {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 20px;
-      display: flex;
-      gap: 16px;
-      align-items: baseline;
-    }
-    .step .n { color: var(--accent); font-weight: 800; font-size: 20px; }
-    .step p { color: var(--dim); font-size: 15px; }
-    .step strong { color: var(--text); display: block; font-size: 16px; margin-bottom: 2px; }
-    .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .feature {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      font-size: 14px;
-      color: var(--dim);
-    }
-    .feature strong { color: var(--text); display: block; font-size: 15px; margin-bottom: 4px; }
-    footer { margin-top: 56px; text-align: center; color: var(--dim); font-size: 13px; }
-    footer a { color: var(--secondary); }
-    @media (max-width: 480px) {
-      h1 { font-size: 34px; }
-      .features { grid-template-columns: 1fr; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Impostor — the party word game</title>
+<meta name="description" content="Everyone knows the secret word. One of you is lying. A free party game for Android — pass one phone around, or play online with friends in seconds.">
+<meta name="theme-color" content="#0B0E1A">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://imnb57.github.io/impostor/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://imnb57.github.io/impostor/">
+<meta property="og:title" content="Impostor — the party word game">
+<meta property="og:description" content="Everyone knows the secret word. One of you is lying. Free Android party game — pass & play or online rooms.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕵️</text></svg>">
+
+<style>
+/* ─── tokens ─────────────────────────────────────────────────────────── */
+:root{
+  --bg:#0B0E1A;
+  --bg-soft:#11152a;
+  --surface:rgba(255,255,255,.045);
+  --stroke:rgba(255,255,255,.09);
+  --stroke-hi:rgba(255,255,255,.18);
+  --text:#F4F6FF;
+  --dim:#9AA3C0;
+  --pink:#FF5470;
+  --cyan:#22D3EE;
+  --violet:#8B6CFF;
+  --grad:linear-gradient(115deg,var(--pink) 0%,var(--violet) 48%,var(--cyan) 100%);
+  --rail:min(1120px,92vw);
+  --r-sm:14px; --r-md:20px; --r-lg:28px; --r-xl:36px;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-synthesis-weight:none;
+  line-height:1.6;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+::selection{background:var(--pink);color:#fff}
+
+/* ─── ambient background ─────────────────────────────────────────────── */
+.bg{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+.orb{
+  position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;
+  will-change:transform;
+}
+.orb-1{width:52vmax;height:52vmax;left:-16vmax;top:-20vmax;background:radial-gradient(circle,#FF5470,transparent 65%);animation:drift1 26s var(--ease) infinite alternate}
+.orb-2{width:46vmax;height:46vmax;right:-14vmax;top:8vmax;background:radial-gradient(circle,#22D3EE,transparent 65%);opacity:.36;animation:drift2 32s var(--ease) infinite alternate}
+.orb-3{width:40vmax;height:40vmax;left:22vmax;bottom:-18vmax;background:radial-gradient(circle,#8B6CFF,transparent 65%);opacity:.32;animation:drift3 29s var(--ease) infinite alternate}
+@keyframes drift1{to{transform:translate3d(9vmax,7vmax,0) scale(1.14)}}
+@keyframes drift2{to{transform:translate3d(-8vmax,9vmax,0) scale(1.1)}}
+@keyframes drift3{to{transform:translate3d(7vmax,-8vmax,0) scale(1.16)}}
+/* film grain keeps the gradients from banding on cheap panels */
+.grain{
+  position:fixed;inset:-200%;z-index:-1;pointer-events:none;opacity:.032;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 8s steps(6) infinite;
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)}17%{transform:translate(-3%,-4%)}33%{transform:translate(2%,-2%)}
+  50%{transform:translate(-2%,3%)}67%{transform:translate(3%,2%)}83%{transform:translate(-3%,1%)}
+}
+
+/* ─── layout ─────────────────────────────────────────────────────────── */
+.rail{width:var(--rail);margin-inline:auto}
+section{position:relative;padding-block:clamp(72px,11vw,132px)}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);margin-bottom:18px;
+}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--grad)}
+h2{
+  font-size:clamp(30px,5.2vw,54px);line-height:1.06;letter-spacing:-.035em;font-weight:800;
+  margin-bottom:16px;text-wrap:balance;
+}
+.lede{color:var(--dim);font-size:clamp(15px,1.7vw,18px);max-width:56ch;text-wrap:pretty}
+
+/* ─── nav ────────────────────────────────────────────────────────────── */
+.nav{
+  position:fixed;top:14px;left:50%;translate:-50% 0;z-index:50;
+  width:var(--rail);display:flex;align-items:center;justify-content:space-between;
+  gap:14px;padding:10px 10px 10px 18px;border-radius:var(--r-lg);
+  background:rgba(11,14,26,.62);border:1px solid var(--stroke);
+  backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);
+  transition:transform .4s var(--ease),opacity .4s var(--ease);
+}
+.nav[data-hidden="true"]{transform:translateY(-140%);opacity:0}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.02em;text-decoration:none;font-size:15px}
+.brand span[aria-hidden]{font-size:19px}
+.nav-links{display:flex;align-items:center;gap:6px}
+.nav-links a{
+  padding:9px 14px;border-radius:var(--r-sm);text-decoration:none;color:var(--dim);
+  font-size:14px;font-weight:600;transition:color .2s,background .2s;
+}
+.nav-links a:hover{color:var(--text);background:var(--surface)}
+.nav .btn-sm{
+  padding:10px 18px;border-radius:var(--r-sm);text-decoration:none;font-size:14px;font-weight:700;
+  color:#0B0E1A;background:var(--grad);white-space:nowrap;
+  transition:filter .2s,transform .2s var(--ease);
+}
+.nav .btn-sm:hover{filter:brightness(1.1);transform:translateY(-1px)}
+@media(max-width:760px){.nav-links{display:none}}
+
+/* ─── hero ───────────────────────────────────────────────────────────── */
+.hero{
+  min-height:100svh;display:grid;align-items:center;
+  padding-block:clamp(110px,16vh,150px) clamp(60px,9vw,96px);
+}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:clamp(28px,5vw,64px);align-items:center}
+@media(max-width:920px){.hero-grid{grid-template-columns:1fr;gap:48px}}
+
+.pill{
+  display:inline-flex;align-items:center;gap:10px;padding:7px 14px 7px 8px;
+  border-radius:999px;border:1px solid var(--stroke);background:var(--surface);
+  font-size:13px;color:var(--dim);font-weight:600;margin-bottom:22px;
+}
+.pill b{
+  color:#0B0E1A;background:var(--grad);padding:3px 9px;border-radius:999px;
+  font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ADE80;box-shadow:0 0 0 0 rgba(74,222,128,.6);animation:pulse 2.4s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
+
+h1{
+  font-size:clamp(44px,8.4vw,92px);line-height:.95;letter-spacing:-.045em;font-weight:850;
+  text-wrap:balance;
+}
+h1 .lie{
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  font-style:italic;
+}
+.hero p.sub{color:var(--dim);font-size:clamp(16px,2vw,19px);margin-top:20px;max-width:44ch;text-wrap:pretty}
+
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:34px;align-items:center}
+.btn{
+  --lift:0;
+  position:relative;display:inline-flex;align-items:center;gap:11px;
+  padding:17px 30px;border-radius:var(--r-md);text-decoration:none;
+  font-weight:750;font-size:17px;letter-spacing:-.01em;color:#0B0E1A;
+  background:var(--grad);overflow:hidden;isolation:isolate;
+  transform:translateY(var(--lift));
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease);
+  box-shadow:0 10px 34px -12px rgba(255,84,112,.7);
+}
+.btn::after{ /* sheen sweep on hover */
+  content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.55) 50%,transparent 80%);
+  translate:-120% 0;transition:translate .7s var(--ease);
+}
+.btn:hover{--lift:-3px;box-shadow:0 18px 46px -14px rgba(255,84,112,.85)}
+.btn:hover::after{translate:120% 0}
+.btn:active{--lift:-1px}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:9px;padding:17px 26px;border-radius:var(--r-md);
+  text-decoration:none;font-weight:650;font-size:16px;color:var(--text);
+  border:1px solid var(--stroke);background:var(--surface);
+  transition:border-color .25s,background .25s,transform .3s var(--ease);
+}
+.btn-ghost:hover{border-color:var(--stroke-hi);background:rgba(255,255,255,.08);transform:translateY(-2px)}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:20px;color:var(--dim);font-size:13.5px}
+.meta span{display:inline-flex;align-items:center;gap:7px}
+
+/* ─── phone mock ─────────────────────────────────────────────────────── */
+.phone-wrap{display:grid;place-items:center;perspective:1400px}
+.phone{
+  width:min(290px,74vw);aspect-ratio:9/19;position:relative;
+  border-radius:44px;padding:11px;
+  background:linear-gradient(160deg,#2A3050,#12162a 60%);
+  border:1px solid var(--stroke-hi);
+  box-shadow:0 50px 90px -40px rgba(0,0,0,.95),0 0 0 1px rgba(255,255,255,.04) inset;
+  transform:rotateY(-13deg) rotateX(5deg) rotateZ(1.5deg);
+  animation:float 7s ease-in-out infinite;
+  will-change:transform;
+}
+@keyframes float{50%{transform:rotateY(-9deg) rotateX(3deg) rotateZ(1deg) translateY(-14px)}}
+.screen{
+  height:100%;border-radius:34px;background:linear-gradient(175deg,#141833,#0C1020);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:22px;overflow:hidden;position:relative;
+}
+.screen::before{ /* notch */
+  content:"";position:absolute;top:9px;left:50%;translate:-50% 0;
+  width:76px;height:5px;border-radius:99px;background:rgba(255,255,255,.14);
+}
+.mock-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.card3d{width:100%;aspect-ratio:1/1.13;position:relative;transform-style:preserve-3d;animation:flip 9s var(--ease) infinite}
+@keyframes flip{
+  0%,32%{transform:rotateY(0)}
+  46%,82%{transform:rotateY(180deg)}
+  96%,100%{transform:rotateY(360deg)}
+}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:9px;text-align:center;padding:18px;border:1px solid var(--stroke);
+}
+.face-front{background:rgba(255,255,255,.05)}
+.face-front .tap{font-size:34px;animation:tap 2.6s var(--ease) infinite}
+@keyframes tap{0%,100%{transform:translateY(0)}45%{transform:translateY(7px) scale(.94)}}
+.face-front b{font-size:16px;font-weight:750}
+.face-front small{color:var(--dim);font-size:11.5px;line-height:1.45}
+.face-back{
+  transform:rotateY(180deg);
+  background:linear-gradient(165deg,rgba(34,211,238,.16),rgba(139,108,255,.1));
+  border-color:rgba(34,211,238,.4);
+}
+.face-back small{color:var(--dim);font-size:11.5px;letter-spacing:.04em}
+.face-back .word{
+  font-size:clamp(26px,7.6vw,34px);font-weight:850;letter-spacing:-.03em;
+  background:linear-gradient(120deg,var(--cyan),#A5F3FC);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.dots{display:flex;gap:6px;margin-top:2px}
+.dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2)}
+.dots i:nth-child(2){background:var(--pink)}
+
+/* ─── marquee ────────────────────────────────────────────────────────── */
+.marquee{
+  border-block:1px solid var(--stroke);padding-block:18px;overflow:hidden;
+  background:rgba(255,255,255,.02);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);
+}
+.marquee-track{display:flex;width:max-content;animation:slide 42s linear infinite}
+.marquee:hover .marquee-track{animation-play-state:paused}
+@keyframes slide{to{transform:translateX(-50%)}}
+.marquee-track span{
+  display:inline-flex;align-items:center;gap:26px;padding-inline:13px;
+  font-size:clamp(15px,2.1vw,21px);font-weight:700;letter-spacing:-.02em;color:rgba(244,246,255,.5);
+  white-space:nowrap;
+}
+.marquee-track span::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--pink);opacity:.65}
+
+/* ─── steps ──────────────────────────────────────────────────────────── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+@media(max-width:860px){.steps{grid-template-columns:1fr}}
+.step{
+  position:relative;padding:30px 26px 28px;border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--stroke);overflow:hidden;
+  transition:border-color .35s,transform .45s var(--ease),background .35s;
+}
+.step:hover{border-color:var(--stroke-hi);transform:translateY(-5px);background:rgba(255,255,255,.07)}
+.step .num{
+  font-size:13px;font-weight:850;letter-spacing:.1em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.step h3{font-size:20px;font-weight:750;letter-spacing:-.02em;margin:12px 0 8px}
+.step p{color:var(--dim);font-size:15px;text-wrap:pretty}
+.step::after{ /* corner glow */
+  content:"";position:absolute;width:150px;height:150px;right:-56px;top:-56px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,84,112,.3),transparent 70%);
+  opacity:0;transition:opacity .45s;
+}
+.step:hover::after{opacity:1}
+
+/* ─── bento ──────────────────────────────────────────────────────────── */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:44px}
+.tile{
+  position:relative;padding:28px;border-radius:var(--r-lg);
+  background:var(--surface);border:1px solid var(--stroke);overflow:hidden;
+  transition:border-color .35s,transform .45s var(--ease);
+}
+.tile:hover{border-color:var(--stroke-hi);transform:translateY(-4px)}
+.tile > *{position:relative;z-index:1}
+.tile::before{ /* cursor spotlight */
+  content:"";position:absolute;inset:0;opacity:0;transition:opacity .4s;
+  background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.09),transparent 62%);
+}
+.tile:hover::before{opacity:1}
+.tile .ico{font-size:26px;line-height:1;margin-bottom:14px;display:block}
+.tile h3{font-size:19px;font-weight:750;letter-spacing:-.02em;margin-bottom:7px}
+.tile p{color:var(--dim);font-size:14.5px;text-wrap:pretty}
+.t-wide{grid-column:span 3}
+.t-third{grid-column:span 2}
+.t-half{grid-column:span 3}
+@media(max-width:860px){
+  .bento{grid-template-columns:1fr 1fr}
+  .t-wide,.t-third,.t-half{grid-column:span 2}
+}
+.tile-hero{
+  background:linear-gradient(150deg,rgba(255,84,112,.16),rgba(139,108,255,.09) 60%,transparent);
+  border-color:rgba(255,84,112,.28);
+}
+.codebox{
+  margin-top:16px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:26px;font-weight:800;letter-spacing:.34em;color:var(--cyan);
+  background:rgba(0,0,0,.3);border:1px dashed rgba(34,211,238,.34);
+  border-radius:var(--r-sm);padding:14px;text-align:center;
+}
+
+/* ─── install ────────────────────────────────────────────────────────── */
+.install{display:grid;grid-template-columns:.92fr 1.08fr;gap:clamp(28px,5vw,60px);align-items:center}
+@media(max-width:920px){.install{grid-template-columns:1fr}}
+.ol{counter-reset:s;display:grid;gap:12px;margin-top:8px}
+.ol li{
+  counter-increment:s;list-style:none;display:flex;gap:16px;align-items:flex-start;
+  padding:19px 22px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--stroke);
+  transition:border-color .3s;
+}
+.ol li:hover{border-color:var(--stroke-hi)}
+.ol li::before{
+  content:counter(s);flex:none;width:29px;height:29px;border-radius:50%;
+  display:grid;place-items:center;font-size:13px;font-weight:800;color:#0B0E1A;background:var(--grad);
+}
+.ol b{display:block;font-size:15.5px;font-weight:700;margin-bottom:3px}
+.ol p{color:var(--dim);font-size:14px;text-wrap:pretty}
+
+/* ─── final cta ──────────────────────────────────────────────────────── */
+.finale{text-align:center;padding-block:clamp(84px,12vw,148px)}
+.finale h2{font-size:clamp(34px,7vw,74px);letter-spacing:-.04em;line-height:1.02}
+.finale .lede{margin:18px auto 0}
+.finale .cta-row{justify-content:center}
+
+/* ─── footer ─────────────────────────────────────────────────────────── */
+footer{border-top:1px solid var(--stroke);padding-block:34px;color:var(--dim);font-size:13.5px}
+.foot{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
+.foot a{color:var(--dim);text-decoration:none;transition:color .2s}
+.foot a:hover{color:var(--text)}
+.foot nav{display:flex;gap:20px;flex-wrap:wrap}
+
+/* ─── scroll reveal ──────────────────────────────────────────────────── */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.rv.in{opacity:1;transform:none}
+.rv[data-d="1"]{transition-delay:.08s}
+.rv[data-d="2"]{transition-delay:.16s}
+.rv[data-d="3"]{transition-delay:.24s}
+
+@media(max-width:520px){
+  .cta-row .btn,.cta-row .btn-ghost{flex:1 1 100%;justify-content:center}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+  .rv{opacity:1;transform:none}
+  .phone{transform:none}
+}
+</style>
+<!-- Reveals are JS-driven; without JS the content must still be visible. -->
+<noscript><style>.rv{opacity:1!important;transform:none!important}</style></noscript>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hero">
-      <span class="badge">🕵️</span>
-      <h1>IMPOSTOR</h1>
-      <p class="tagline">Everyone knows the secret word.<br />One of you is lying.</p>
-      <a class="cta" href="https://github.com/imnb57/impostor/releases/latest/download/impostor.apk">
-        ⬇️&nbsp; Download for Android
-      </a>
-      <p class="cta-note">
-        Free .apk — Android 7+. Your phone may ask you to allow
-        "install unknown apps"; that's normal for apps outside the Play Store.
-      </p>
+
+<div class="bg" aria-hidden="true">
+  <div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <a class="brand" href="#top"><span aria-hidden="true">🕵️</span> Impostor</a>
+  <nav class="nav-links" aria-label="Primary">
+    <a href="#how">How to play</a>
+    <a href="#modes">Modes</a>
+    <a href="#install">Install</a>
+  </nav>
+  <a class="btn-sm" href="https://github.com/imnb57/impostor/releases/latest/download/impostor.apk">Get the APK</a>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="rail hero-grid">
+      <div>
+        <div class="pill rv in"><b>v1.0.1</b> <span class="dot" aria-hidden="true"></span> Free on Android</div>
+        <h1 class="rv in" data-d="1">Everyone knows<br>the word.<br><span class="lie">One of you is lying.</span></h1>
+        <p class="sub rv in" data-d="2">
+          The party game that turns your friends into terrible liars.
+          Pass one phone around the table — or start an online room and play from anywhere.
+        </p>
+        <div class="cta-row rv in" data-d="3">
+          <a class="btn" href="https://github.com/imnb57/impostor/releases/latest/download/impostor.apk">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0 5-5m-5 5-5-5M4 20h16"/></svg>
+            Download for Android
+          </a>
+          <a class="btn-ghost" href="#how">See how it works</a>
+        </div>
+        <div class="meta rv in" data-d="3">
+          <span>📦 74&nbsp;MB APK</span>
+          <span>🤖 Android 7+</span>
+          <span>👥 3–12 players</span>
+          <span>🚫 No ads</span>
+        </div>
+      </div>
+
+      <div class="phone-wrap rv in" data-d="2" aria-hidden="true">
+        <div class="phone">
+          <div class="screen">
+            <span class="mock-label">Your role</span>
+            <div class="card3d">
+              <div class="face face-front">
+                <span class="tap">👆</span>
+                <b>Hold to reveal</b>
+                <small>Keep the screen away<br>from other players</small>
+              </div>
+              <div class="face face-back">
+                <small>THE SECRET WORD IS</small>
+                <span class="word">Pizza</span>
+                <small>Describe it — never say it</small>
+              </div>
+            </div>
+            <div class="dots"><i></i><i></i><i></i></div>
+            <span class="mock-label">Player 2 of 6</span>
+          </div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <section>
-      <h2>How it works</h2>
-      <div class="steps">
-        <div class="step"><span class="n">1</span>
-          <p><strong>Get your secret role</strong>Everyone sees the same secret word — except the impostor, who only knows the category.</p>
-        </div>
-        <div class="step"><span class="n">2</span>
-          <p><strong>Describe &amp; bluff</strong>Take turns describing the word without saying it. The impostor has to bluff along.</p>
-        </div>
-        <div class="step"><span class="n">3</span>
-          <p><strong>Vote out the liar</strong>Discuss, accuse, and vote. Catch the impostor — or get fooled.</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Play your way</h2>
-      <div class="features">
-        <div class="feature"><strong>🎉 Pass &amp; Play</strong>One phone, zero setup. Pass it around the room — works offline.</div>
-        <div class="feature"><strong>🌐 Online rooms</strong>Create a room, friends join with a 4-letter code from their own phones.</div>
-        <div class="feature"><strong>🔁 Reconnect-proof</strong>App crashed mid-game? Rejoin the room and pick up where you left off.</div>
-        <div class="feature"><strong>🧩 3 categories</strong>Food &amp; Drink, Animals, and Places — with more packs on the way.</div>
-      </div>
-    </section>
-
-    <footer>
-      <p>Made with React Native + Firebase · <a href="https://github.com/imnb57/impostor">Source on GitHub</a></p>
-    </footer>
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>Pizza</span><span>Penguin</span><span>Casino</span><span>Sushi</span><span>Octopus</span><span>Ski Resort</span><span>Ramen</span><span>Flamingo</span><span>Submarine</span><span>Waffles</span><span>Chameleon</span><span>Haunted House</span>
+      <span>Pizza</span><span>Penguin</span><span>Casino</span><span>Sushi</span><span>Octopus</span><span>Ski Resort</span><span>Ramen</span><span>Flamingo</span><span>Submarine</span><span>Waffles</span><span>Chameleon</span><span>Haunted House</span>
+    </div>
   </div>
+
+  <!-- HOW -->
+  <section id="how">
+    <div class="rail">
+      <span class="eyebrow rv">How it works</span>
+      <h2 class="rv" data-d="1">Three rounds of<br>beautiful paranoia.</h2>
+      <p class="lede rv" data-d="2">A full game takes about five minutes. Learning it takes about thirty seconds.</p>
+      <div class="steps">
+        <article class="step rv"><span class="num">STEP 01</span><h3>Get your role</h3><p>Everyone sees the same secret word — except the impostor, who only learns the category. Nobody knows who got what.</p></article>
+        <article class="step rv" data-d="1"><span class="num">STEP 02</span><h3>Describe &amp; bluff</h3><p>Take turns describing the word without ever saying it. Too vague and you look guilty. Too precise and you hand it to the impostor.</p></article>
+        <article class="step rv" data-d="2"><span class="num">STEP 03</span><h3>Vote them out</h3><p>Argue, accuse, then vote in secret. Catch the impostor and the crew wins — miss, and they walk away laughing.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODES / BENTO -->
+  <section id="modes">
+    <div class="rail">
+      <span class="eyebrow rv">Two ways to play</span>
+      <h2 class="rv" data-d="1">One phone, or everyone's.</h2>
+      <div class="bento">
+        <article class="tile tile-hero t-wide rv">
+          <span class="ico">🎉</span>
+          <h3>Pass &amp; Play</h3>
+          <p>Zero setup, zero internet. Add names, pass the phone around the circle, and everyone holds the screen to peek at their own role. Perfect for a table, a car, or a queue.</p>
+        </article>
+        <article class="tile t-wide rv" data-d="1">
+          <span class="ico">🌐</span>
+          <h3>Online rooms</h3>
+          <p>Host a room and share the code. Friends join from their own phones and everything — roles, timer, votes — stays in sync in real time.</p>
+          <div class="codebox">QK7M</div>
+        </article>
+        <article class="tile t-third rv"><span class="ico">🔁</span><h3>Reconnect-proof</h3><p>Phone died mid-round? Rejoin with the same code and drop straight back into your role.</p></article>
+        <article class="tile t-third rv" data-d="1"><span class="ico">⏱️</span><h3>Tunable rounds</h3><p>Set the discussion timer and pick 1–5 impostors. Big group? Crank the chaos.</p></article>
+        <article class="tile t-third rv" data-d="2"><span class="ico">🧩</span><h3>Fresh words</h3><p>Food, Animals and Places out of the box — 72 words and more packs on the way.</p></article>
+        <article class="tile t-half rv"><span class="ico">🔒</span><h3>Sign in with Google — or don't</h3><p>Add your name and avatar for online games, or stay completely anonymous. Your call, every time.</p></article>
+        <article class="tile t-half rv" data-d="1"><span class="ico">🚫</span><h3>No ads. No accounts required.</h3><p>No banners, no paywalls, no sign-up wall between you and a game. Just open it and play.</p></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section id="install">
+    <div class="rail install">
+      <div>
+        <span class="eyebrow rv">Install in 60 seconds</span>
+        <h2 class="rv" data-d="1">Not on the Play Store yet.</h2>
+        <p class="lede rv" data-d="2">So you install it directly — the same way you'd install any app from outside the store. Android will ask once for permission, and that's it.</p>
+        <div class="cta-row rv" data-d="3">
+          <a class="btn" href="https://github.com/imnb57/impostor/releases/latest/download/impostor.apk">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0 5-5m-5 5-5-5M4 20h16"/></svg>
+            Download impostor.apk
+          </a>
+        </div>
+      </div>
+      <ol class="ol">
+        <li class="rv"><div><b>Tap download on your phone</b><p>Grab the APK straight from the GitHub release — always the newest build.</p></div></li>
+        <li class="rv" data-d="1"><div><b>Allow "install unknown apps"</b><p>Android shows this prompt for anything outside the Play Store. Approve it for your browser and continue.</p></div></li>
+        <li class="rv" data-d="2"><div><b>Open and gather your friends</b><p>Pass &amp; Play works instantly offline. For online rooms, one person hosts and shares the 4-letter code.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- FINALE -->
+  <section class="finale">
+    <div class="rail">
+      <h2 class="rv">Somebody at your<br>table is lying.</h2>
+      <p class="lede rv" data-d="1">Find out who. It takes five minutes and ruins friendships responsibly.</p>
+      <div class="cta-row rv" data-d="2">
+        <a class="btn" href="https://github.com/imnb57/impostor/releases/latest/download/impostor.apk">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0 5-5m-5 5-5-5M4 20h16"/></svg>
+          Download for Android
+        </a>
+        <a class="btn-ghost" href="https://github.com/imnb57/impostor">⭐ Star on GitHub</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="rail foot">
+    <span>🕵️ Impostor — built with React Native &amp; Firebase</span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/imnb57/impostor">Source</a>
+      <a href="https://github.com/imnb57/impostor/releases">Releases</a>
+      <a href="https://github.com/imnb57/impostor/issues">Report a bug</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Reveal on scroll — one observer, unobserve after firing.
+  if('IntersectionObserver' in window && !reduce){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{rootMargin:'0px 0px -12% 0px',threshold:.12});
+    document.querySelectorAll('.rv:not(.in)').forEach(function(el){ io.observe(el); });
+  } else {
+    document.querySelectorAll('.rv').forEach(function(el){ el.classList.add('in'); });
+  }
+
+  // Hide the nav while scrolling down, bring it back on the way up.
+  var nav = document.getElementById('nav'), last = 0, ticking = false;
+  addEventListener('scroll', function(){
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){
+      var y = scrollY;
+      nav.dataset.hidden = (y > last && y > 320) ? 'true' : 'false';
+      last = y; ticking = false;
+    });
+  }, {passive:true});
+
+  // Cursor spotlight on bento tiles (pointer devices only).
+  if(matchMedia('(hover:hover) and (pointer:fine)').matches && !reduce){
+    document.querySelectorAll('.tile').forEach(function(tile){
+      tile.addEventListener('pointermove', function(e){
+        var r = tile.getBoundingClientRect();
+        tile.style.setProperty('--mx',(e.clientX-r.left)+'px');
+        tile.style.setProperty('--my',(e.clientY-r.top)+'px');
+      });
+    });
+  }
+})();
+</script>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Impostor","applicationCategory":"GameApplication","operatingSystem":"Android 7.0+","description":"A party word game. Everyone knows the secret word except the impostor. Play pass-and-play on one phone or online with friends.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"downloadUrl":"https://github.com/imnb57/impostor/releases/latest/download/impostor.apk"}
+</script>
 </body>
 </html>
