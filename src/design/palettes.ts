@@ -43,7 +43,7 @@ export const PALETTES: Palette[] = [
     strokeStrong: 'rgba(255,255,255,0.20)',
     text: '#F4F6FF',
     textDim: '#9AA3C0',
-    textFaint: '#5F6784',
+    textFaint: '#7D87A8',
     accent: '#FF5470',
     accentMid: '#8B6CFF',
     accentEnd: '#22D3EE',
@@ -64,7 +64,7 @@ export const PALETTES: Palette[] = [
     strokeStrong: 'rgba(255,225,210,0.22)',
     text: '#FFF3EC',
     textDim: '#C4A499',
-    textFaint: '#8A6A5E',
+    textFaint: '#A28A7E',
     accent: '#FF8A3D',
     accentMid: '#FF4D4D',
     accentEnd: '#FFC93C',
@@ -85,7 +85,7 @@ export const PALETTES: Palette[] = [
     strokeStrong: 'rgba(200,255,230,0.22)',
     text: '#EAFFF5',
     textDim: '#8FBFA8',
-    textFaint: '#59806E',
+    textFaint: '#79A48F',
     accent: '#39FF88',
     accentMid: '#00D9A5',
     accentEnd: '#C6FF3D',
@@ -106,7 +106,7 @@ export const PALETTES: Palette[] = [
     strokeStrong: 'rgba(210,235,255,0.22)',
     text: '#EFF7FF',
     textDim: '#93AEC9',
-    textFaint: '#5C7590',
+    textFaint: '#7E94AF',
     accent: '#38BDF8',
     accentMid: '#6366F1',
     accentEnd: '#A5F3FC',
@@ -127,7 +127,7 @@ export const PALETTES: Palette[] = [
     strokeStrong: 'rgba(230,215,255,0.22)',
     text: '#F6F1FF',
     textDim: '#A99BC7',
-    textFaint: '#6E6190',
+    textFaint: '#9084AE',
     accent: '#C084FC',
     accentMid: '#7C3AED',
     accentEnd: '#FDE68A',
@@ -144,7 +144,17 @@ export function getPalette(id: string): Palette {
   return PALETTES.find((p) => p.id === id) ?? PALETTES[0];
 }
 
-/** Gradient stop array in brand order — used by every gradient in the app. */
+/** Full three-stop brand gradient — decorative surfaces only. */
 export function gradientStops(p: Palette): [string, string, string] {
   return [p.accent, p.accentMid, p.accentEnd];
+}
+
+/**
+ * Two-stop gradient for anything with a label on top. The middle stop is the
+ * darkest point of several palettes (Royal's violet measures 3.4:1 against the
+ * dark label), so text crossing it faded out. Dropping to accent -> accentEnd
+ * keeps every palette above 6:1.
+ */
+export function actionGradient(p: Palette): [string, string] {
+  return [p.accent, p.accentEnd];
 }

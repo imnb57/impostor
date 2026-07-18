@@ -27,12 +27,12 @@ export function ModePicker({ selected, playerCount, onSelect, disabled }: Props)
             key={mode.id}
             active={active}
             onPress={disabled || locked ? undefined : () => onSelect(mode.id)}
-            style={[styles.card, locked && styles.locked] as never}
+            style={styles.card}
           >
             <View style={styles.row}>
-              <Text style={styles.emoji}>{mode.emoji}</Text>
+              <Text style={[styles.emoji, locked && styles.lockedEmoji]}>{mode.emoji}</Text>
               <View style={styles.text}>
-                <Text variant="bodyStrong" color={active ? t.accent : t.text}>
+                <Text variant="bodyStrong" color={active ? t.accent : locked ? t.textDim : t.text}>
                   {mode.name}
                 </Text>
                 <Text variant="caption" faint>
@@ -50,7 +50,7 @@ export function ModePicker({ selected, playerCount, onSelect, disabled }: Props)
 const styles = StyleSheet.create({
   list: { gap: space.sm },
   card: { paddingVertical: space.base },
-  locked: { opacity: 0.45 },
+  lockedEmoji: { opacity: 0.5 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.base },
   emoji: { fontSize: 26, lineHeight: 32 },
   text: { flex: 1, gap: 1 },

@@ -6,7 +6,7 @@ import { Screen } from '../components/ui/Screen';
 import { Text } from '../components/ui/Text';
 import { TextField } from '../components/ui/TextField';
 import { radius, space } from '../design/tokens';
-import { useGradient, useTheme } from '../design/useTheme';
+import { useActionGradient, useTheme } from '../design/useTheme';
 import { GoogleAuthButton } from '../components/GoogleAuthButton';
 import { useGoogleProfile } from '../hooks/useGoogleSignIn';
 import { isFirebaseConfigured } from '../services/firebase';
@@ -17,7 +17,7 @@ import type { ScreenProps } from '../types/navigation';
 
 export function HomeScreen({ navigation }: ScreenProps<'Home'>) {
   const t = useTheme();
-  const gradient = useGradient();
+  const gradient = useActionGradient();
   const playerName = useSettingsStore((s) => s.playerName);
   const setPlayerName = useSettingsStore((s) => s.setPlayerName);
 
@@ -77,7 +77,7 @@ export function HomeScreen({ navigation }: ScreenProps<'Home'>) {
               <Text variant="heading" color={t.onAccent}>
                 Pass &amp; Play
               </Text>
-              <Text variant="caption" color={t.onAccent} style={styles.modeSub}>
+              <Text variant="caption" color={t.onAccent}>
                 One phone · works offline
               </Text>
             </View>
@@ -173,7 +173,6 @@ const styles = StyleSheet.create({
   secondaryMode: { flexDirection: 'row', alignItems: 'center', gap: space.base },
   modeEmoji: { fontSize: 32, lineHeight: 38 },
   modeText: { flex: 1, gap: 2 },
-  modeSub: { opacity: 0.75 },
   account: { marginTop: space.xxl, gap: space.sm },
   profileRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   avatar: { width: 34, height: 34, borderRadius: radius.pill },

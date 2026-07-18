@@ -86,6 +86,54 @@ appear at expo.dev.
 6. Deploy `database.rules.json` to Realtime Database rules (console → Rules tab)
    — test mode expires and leaves the DB open.
 
+## Pushing updates without a reinstall (EAS Update)
+
+Installed apps pull JavaScript and asset changes over the air, so most
+changes reach players without them downloading a new APK.
+
+```bash
+# ship whatever is in the working tree to everyone on the preview APK
+eas update --branch preview --message "fix voting copy"
+```
+
+Players get it on next launch (the app checks automatically), or immediately
+via **Settings → Check for updates**.
+
+**What can and cannot travel this way** — this is the part that bites:
+
+| Change | Ships over the air? |
+| --- | --- |
+| Screens, copy, styling, game logic, word bank | ✅ yes |
+| New JS dependency (no native code) | ✅ yes |
+| New native module (`expo install` something with native code) | ❌ new APK |
+| Anything in `app.json` native config — icons, splash, permissions, package | ❌ new APK |
+| Bumping `version` in `app.json` | ❌ breaks the update link — see below |
+
+`runtimeVersion` uses the `appVersion` policy, meaning an update only reaches
+builds with a **matching `version`**. Leave `version` alone while shipping OTA
+fixes. When you do need a native change, bump `version`, build a new APK, and
+publish updates against that version from then on.
+
+First release on a new version:
+
+```bash
+eas build -p android --profile preview   # players install this once
+eas update --branch preview -m "..."     # then every fix flows automatically
+```
+
+## Game modes
+
+| Mode | What changes |
+| --- | --- |
+| **Classic** | Everyone knows the word; the impostor gets one oblique clue. |
+| **Saboteur** | One player knows the word but wins only if an *innocent* is voted out. |
+| **Informant** | One player learns an impostor's name but never the word. If the impostor is caught, they get one shot at naming the informant to steal the round. |
+| **Fragments** | Nobody gets the word — each player holds a different facet of it, and the impostor's facet belongs to a different word entirely. |
+
+Roles, payloads and win conditions live in `src/services/roles.ts` and
+`src/services/resolveRound.ts`. `resolveRound` is pure and fully tested
+(`npm test`) because a subtle bug there silently ruins games.
+
 ## Scripts
 
 | Command | What it does |

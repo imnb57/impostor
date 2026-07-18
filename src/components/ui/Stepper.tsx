@@ -73,8 +73,8 @@ function StepKey({
         scale.value = withSpring(1, motion.spring.bouncy);
       }}
     >
-      <Animated.View style={[styles.key, animated, disabled && styles.disabled]}>
-        <Text variant="heading" color={t.text}>
+      <Animated.View style={[styles.key, animated]}>
+        <Text variant="heading" color={disabled ? t.textFaint : t.text}>
           {symbol}
         </Text>
       </Animated.View>
@@ -100,5 +100,4 @@ const styles = StyleSheet.create({
   },
   key: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   value: { minWidth: 62, textAlign: 'center' },
-  disabled: { opacity: 0.3 },
 });

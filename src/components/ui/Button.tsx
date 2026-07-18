@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { motion, radius, shadow, space } from '../../design/tokens';
-import { useGradient, useTheme } from '../../design/useTheme';
+import { useActionGradient, useTheme } from '../../design/useTheme';
 import { haptics } from '../../services/haptics';
 import { Text } from './Text';
 
@@ -34,7 +34,7 @@ export function Button({
   silent,
 }: Props) {
   const t = useTheme();
-  const gradient = useGradient();
+  const gradient = useActionGradient();
   const scale = useSharedValue(1);
 
   const animated = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -45,15 +45,22 @@ export function Button({
   };
 
   const height = size === 'lg' ? 58 : 48;
-  const isPrimary = variant === 'primary';
+  // A disabled button drops the gradient entirely rather than fading it — a
+  // dimmed gradient washes the label out instead of reading as unavailable.
+  const isPrimary = variant === 'primary' && !disabled;
+
+  const labelColor = disabled
+    ? t.textFaint
+    : isPrimary
+      ? t.onAccent
+      : variant === 'danger'
+        ? t.danger
+        : t.text;
 
   const body = (
     <>
       {icon}
-      <Text
-        variant="bodyStrong"
-        color={isPrimary ? t.onAccent : variant === 'danger' ? t.danger : t.text}
-      >
+      <Text variant="bodyStrong" color={labelColor}>
         {label}
       </Text>
     </>
@@ -71,7 +78,7 @@ export function Button({
       }}
       style={style}
     >
-      <Animated.View style={[animated, disabled && styles.disabled]}>
+      <Animated.View style={animated}>
         {isPrimary ? (
           <LinearGradient
             colors={gradient}
@@ -93,9 +100,14 @@ export function Button({
               {
                 height,
                 borderRadius: radius.lg,
-                backgroundColor: variant === 'ghost' ? 'transparent' : t.surface,
-                borderWidth: variant === 'ghost' ? 0 : 1,
-                borderColor: variant === 'danger' ? t.danger : t.stroke,
+                backgroundColor:
+                  variant === 'ghost' && !disabled ? 'transparent' : t.surface,
+                borderWidth: variant === 'ghost' && !disabled ? 0 : 1,
+                borderColor: disabled
+                  ? t.stroke
+                  : variant === 'danger'
+                    ? t.danger
+                    : t.stroke,
               },
             ]}
           >
