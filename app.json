@@ -2,8 +2,11 @@
   "expo": {
     "name": "Impostor",
     "slug": "impostor",
-    "version": "1.0.0",
-    "scheme": "impostor",
+    "version": "1.0.2",
+    "scheme": [
+      "impostor",
+      "com.imnb57.impostor"
+    ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -14,7 +17,7 @@
     },
     "android": {
       "package": "com.imnb57.impostor",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#0F1220",
         "foregroundImage": "./assets/android-icon-foreground.png",
