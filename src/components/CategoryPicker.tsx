@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { CATEGORIES } from '../constants/categories';
+import { CATEGORY_OPTIONS } from '../constants/categories';
 import { motion, radius, space } from '../design/tokens';
 import { useTheme } from '../design/useTheme';
 import { haptics } from '../services/haptics';
@@ -15,7 +15,7 @@ interface Props {
 export function CategoryPicker({ selectedId, onSelect, disabled }: Props) {
   return (
     <View style={styles.wrap}>
-      {CATEGORIES.map((category) => (
+      {CATEGORY_OPTIONS.map((category) => (
         <Chip
           key={category.id}
           label={`${category.emoji}  ${category.name}`}

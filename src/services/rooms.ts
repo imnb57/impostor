@@ -109,6 +109,7 @@ export async function startGame(roomCode: string, room: Room): Promise<void> {
 
   const updates: Record<string, unknown> = {
     status: 'reveal',
+    roundCategory: seed.categoryId,
     word: seed.word,
     hint: seed.impostorHint,
     votes: null,

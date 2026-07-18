@@ -2,7 +2,7 @@
   "expo": {
     "name": "Impostor",
     "slug": "impostor",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "scheme": [
       "impostor",
       "com.imnb57.impostor"
@@ -17,14 +17,15 @@
     },
     "android": {
       "package": "com.imnb57.impostor",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#0B0E1A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "favicon": "./assets/favicon.png"

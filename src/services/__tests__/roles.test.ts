@@ -1,4 +1,5 @@
 import type { GameMode, RoleId } from '../../types';
+import { getCategory } from '../../constants/categories';
 import { pickRound } from '../gameLogic';
 import { assignRoles, buildPayloads, MODES } from '../roles';
 
@@ -39,6 +40,7 @@ describe('assignRoles', () => {
 
 describe('buildPayloads', () => {
   const seed = {
+    categoryId: 'food',
     word: 'Pizza',
     hints: ['Italian', 'Shared', 'Delivery'],
     impostorHint: 'Italian',
@@ -87,6 +89,23 @@ describe('buildPayloads', () => {
 });
 
 describe('pickRound', () => {
+  it("resolves the 'random' pack to a real one every time", () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const seed = pickRound('random');
+      expect(seed.categoryId).not.toBe('random');
+      expect(getCategory(seed.categoryId).id).toBe(seed.categoryId);
+      expect(seed.word).toBeTruthy();
+      seen.add(seed.categoryId);
+    }
+    // over 200 draws it should reach more than one pack
+    expect(seen.size).toBeGreaterThan(1);
+  });
+
+  it('passes a real category id straight through', () => {
+    expect(pickRound('animals').categoryId).toBe('animals');
+  });
+
   it('produces a decoy fragment that does not belong to the chosen word', () => {
     for (let i = 0; i < 50; i++) {
       const seed = pickRound('food');

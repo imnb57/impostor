@@ -32,10 +32,18 @@ export async function shareRecap(
       await fallback();
       return;
     }
-    const uri = await captureRef(cardRef, { format: 'png', quality: 1, result: 'tmpfile' });
+    // Capture at 1080x1920 (2x the card's logical 540x960) so stories get a
+    // full-resolution image instead of an upscaled, soft one.
+    const uri = await captureRef(cardRef, {
+      format: 'png',
+      quality: 1,
+      result: 'tmpfile',
+      width: 1080,
+      height: 1920,
+    });
     await Sharing.shareAsync(uri, {
       mimeType: 'image/png',
-      dialogTitle: 'Share your round',
+      dialogTitle: 'Share your playcard',
       UTI: 'public.png',
     });
   } catch {

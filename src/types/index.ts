@@ -43,6 +43,8 @@ export interface Room {
   status: GameStatus;
   mode: GameMode;
   category: string;
+  /** Pack the current round resolved to — differs from category when 'random'. */
+  roundCategory?: string;
   impostorCount: number;
   timerSeconds: number;
   word: string;

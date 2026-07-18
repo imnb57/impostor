@@ -1,4 +1,4 @@
-import { getCategory } from '../constants/categories';
+import { getCategory, resolveCategoryId } from '../constants/categories';
 import type { VoteTally } from '../types';
 
 export function pickRandom<T>(arr: T[]): T {
@@ -18,6 +18,8 @@ export function sample<T>(items: T[], count: number): T[] {
 
 /** Everything a round needs from the word bank, chosen once up front. */
 export interface RoundSeed {
+  /** The pack actually used — 'random' is resolved before the round starts. */
+  categoryId: string;
   word: string;
   /** All facets of the word — dealt out in fragments mode. */
   hints: string[];
@@ -27,13 +29,15 @@ export interface RoundSeed {
   decoyFragment: string;
 }
 
-export function pickRound(categoryId: string): RoundSeed {
+export function pickRound(requestedCategoryId: string): RoundSeed {
+  const categoryId = resolveCategoryId(requestedCategoryId);
   const category = getCategory(categoryId);
   const entry = pickRandom(category.words);
   const others = category.words.filter((w) => w.word !== entry.word);
   const decoySource = others.length ? pickRandom(others) : entry;
 
   return {
+    categoryId,
     word: entry.word,
     hints: entry.hints.length ? entry.hints : [category.name],
     impostorHint: entry.hints.length ? pickRandom(entry.hints) : category.name,

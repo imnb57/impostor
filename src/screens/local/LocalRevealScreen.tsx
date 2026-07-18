@@ -16,7 +16,7 @@ export function LocalRevealScreen({ navigation }: ScreenProps<'LocalReveal'>) {
   const t = useTheme();
   const players = useLocalGameStore((s) => s.players);
   const mode = useLocalGameStore((s) => s.mode);
-  const categoryId = useLocalGameStore((s) => s.categoryId);
+  const categoryId = useLocalGameStore((s) => s.roundCategoryId);
   const [index, setIndex] = useState(0);
 
   const player = players[index];

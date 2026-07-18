@@ -19,6 +19,8 @@ interface LocalGameState {
   timerSeconds: number;
   players: LocalPlayer[];
   word: string;
+  /** Pack the round resolved to — 'random' picks a new one each game. */
+  roundCategoryId: string;
   /** voter index -> target index */
   votes: Record<number, number>;
   /** Index the impostors accuse of being the informant. */
@@ -63,6 +65,7 @@ export const useLocalGameStore = create<LocalGameState>((set, get) => ({
   timerSeconds: 180,
   players: [],
   word: '',
+  roundCategoryId: CATEGORIES[0].id,
   votes: {},
   assassinGuess: null,
 
@@ -95,6 +98,7 @@ export const useLocalGameStore = create<LocalGameState>((set, get) => ({
         payload: payloads[String(i)] ?? {},
       })),
       word: seed.word,
+      roundCategoryId: seed.categoryId,
       votes: {},
       assassinGuess: null,
     });

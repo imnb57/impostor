@@ -100,14 +100,17 @@ export function Button({
               {
                 height,
                 borderRadius: radius.lg,
-                backgroundColor:
-                  variant === 'ghost' && !disabled ? 'transparent' : t.surface,
-                borderWidth: variant === 'ghost' && !disabled ? 0 : 1,
-                borderColor: disabled
-                  ? t.stroke
-                  : variant === 'danger'
-                    ? t.danger
-                    : t.stroke,
+                // Disabled gets its own treatment — borderless and barely
+                // filled. Without this it renders exactly like an enabled
+                // glass button, so "not yet" reads as "tap me".
+                backgroundColor: disabled
+                  ? t.surface
+                  : variant === 'ghost'
+                    ? 'transparent'
+                    : t.surface,
+                borderWidth: disabled || variant === 'ghost' ? 0 : 1,
+                borderColor: variant === 'danger' ? t.danger : t.stroke,
+                opacity: disabled ? 0.75 : 1,
               },
             ]}
           >

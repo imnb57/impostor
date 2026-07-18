@@ -43,7 +43,7 @@ export function LocalResultsScreen({ navigation }: ScreenProps<'LocalResults'>) 
     outcome,
     word: state.word,
     mode: state.mode,
-    categoryName: getCategory(state.categoryId).name,
+    categoryName: getCategory(state.roundCategoryId).name,
     villains,
     tally: state.players
       .map((p, i) => ({
@@ -109,7 +109,7 @@ export function LocalResultsScreen({ navigation }: ScreenProps<'LocalResults'>) 
 
       <View style={styles.actions}>
         <Button
-          label="📸  Share this round"
+          label="📸  Share playcard"
           onPress={() => {
             haptics.press();
             shareRecap(cardRef, outcome, state.word);

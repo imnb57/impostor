@@ -30,7 +30,7 @@ export function RoleRevealView({ room, roomCode, selfUid, onLeave }: OnlinePhase
           role={role}
           payload={payload}
           mode={room.mode ?? 'classic'}
-          categoryName={getCategory(room.category).name}
+          categoryName={getCategory(room.roundCategory ?? room.category).name}
         />
       </View>
 

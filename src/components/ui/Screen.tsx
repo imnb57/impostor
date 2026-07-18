@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react';
-import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { space } from '../../design/tokens';
 import { useTheme } from '../../design/useTheme';
@@ -19,24 +26,31 @@ export function Screen({ children, scroll, plain, bleed, contentStyle }: Props) 
   const t = useTheme();
   const padding = bleed ? undefined : space.xl;
 
+  const body = scroll ? (
+    <ScrollView
+      contentContainerStyle={[{ padding, paddingBottom: space.huge }, contentStyle]}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      showsVerticalScrollIndicator={false}
+    >
+      {children}
+    </ScrollView>
+  ) : (
+    <View style={[styles.content, { padding }, contentStyle]}>{children}</View>
+  );
+
   return (
     <View style={[styles.root, { backgroundColor: t.bg }]}>
       {plain ? null : <Aurora />}
       <SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
-        {scroll ? (
-          <ScrollView
-            contentContainerStyle={[
-              { padding, paddingBottom: space.huge },
-              contentStyle,
-            ]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {children}
-          </ScrollView>
-        ) : (
-          <View style={[styles.content, { padding }, contentStyle]}>{children}</View>
-        )}
+        {/* iOS needs explicit padding; Android resizes the window itself, and
+            doubling up there pushes content off the top of the screen. */}
+        <KeyboardAvoidingView
+          style={styles.safe}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {body}
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );

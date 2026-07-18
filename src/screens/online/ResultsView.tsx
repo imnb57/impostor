@@ -51,7 +51,7 @@ export function ResultsView({ room, roomCode, selfUid, onLeave }: OnlinePhasePro
     outcome,
     word: room.word,
     mode: room.mode ?? 'classic',
-    categoryName: getCategory(room.category).name,
+    categoryName: getCategory(room.roundCategory ?? room.category).name,
     villains: resolvable
       .filter((p) => p.role === 'impostor' || p.role === 'saboteur')
       .map((p) => ({ name: p.name, role: ROLE_META[p.role].label.toLowerCase() })),
@@ -123,7 +123,7 @@ export function ResultsView({ room, roomCode, selfUid, onLeave }: OnlinePhasePro
 
       <View style={styles.actions}>
         <Button
-          label="📸  Share this round"
+          label="📸  Share playcard"
           onPress={() => {
             haptics.press();
             shareRecap(cardRef, outcome, room.word);

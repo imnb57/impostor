@@ -229,8 +229,29 @@ export const CATEGORIES: Category[] = [
   { id: 'objects', name: 'Everyday Things', emoji: '🧦', words: OBJECTS },
 ];
 
+/** Pseudo-category: resolved to a real one when the round starts. */
+export const RANDOM_CATEGORY_ID = 'random';
+
+export const RANDOM_CATEGORY_OPTION = {
+  id: RANDOM_CATEGORY_ID,
+  name: 'Random',
+  emoji: '🎲',
+};
+
+/** What the category picker offers — the shuffle option plus every real pack. */
+export const CATEGORY_OPTIONS = [
+  RANDOM_CATEGORY_OPTION,
+  ...CATEGORIES.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji })),
+];
+
 export function getCategory(id: string): Category {
   return CATEGORIES.find((c) => c.id === id) ?? CATEGORIES[0];
+}
+
+/** Turns 'random' into a concrete pack; passes real ids straight through. */
+export function resolveCategoryId(id: string): string {
+  if (id !== RANDOM_CATEGORY_ID) return getCategory(id).id;
+  return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)].id;
 }
 
 export const TOTAL_WORDS = CATEGORIES.reduce((n, c) => n + c.words.length, 0);
