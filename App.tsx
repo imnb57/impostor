@@ -18,6 +18,7 @@ import { useTheme } from './src/design/useTheme';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { SettingsScreen } from './src/screens/SettingsScreen';
+import { LocalAssassinationScreen } from './src/screens/local/LocalAssassinationScreen';
 import { LocalDiscussionScreen } from './src/screens/local/LocalDiscussionScreen';
 import { LocalResultsScreen } from './src/screens/local/LocalResultsScreen';
 import { LocalRevealScreen } from './src/screens/local/LocalRevealScreen';
@@ -103,6 +104,7 @@ export default function App() {
               <Stack.Screen name="LocalReveal" component={LocalRevealScreen} options={locked} />
               <Stack.Screen name="LocalDiscussion" component={LocalDiscussionScreen} options={locked} />
               <Stack.Screen name="LocalVoting" component={LocalVotingScreen} options={locked} />
+              <Stack.Screen name="LocalAssassination" component={LocalAssassinationScreen} options={locked} />
               <Stack.Screen name="LocalResults" component={LocalResultsScreen} options={locked} />
               <Stack.Screen name="OnlineEntry" component={OnlineEntryScreen} />
               <Stack.Screen name="OnlineRoom" component={OnlineRoomScreen} options={locked} />

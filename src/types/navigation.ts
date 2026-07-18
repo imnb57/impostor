@@ -7,6 +7,7 @@ export type RootStackParamList = {
   LocalReveal: undefined;
   LocalDiscussion: undefined;
   LocalVoting: undefined;
+  LocalAssassination: undefined;
   LocalResults: undefined;
   OnlineEntry: undefined;
   OnlineRoom: { roomCode: string };

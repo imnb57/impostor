@@ -2,7 +2,7 @@
   "expo": {
     "name": "Impostor",
     "slug": "impostor",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "scheme": [
       "impostor",
       "com.imnb57.impostor"
@@ -17,7 +17,7 @@
     },
     "android": {
       "package": "com.imnb57.impostor",
-      "versionCode": 4,
+      "versionCode": 5,
       "adaptiveIcon": {
         "backgroundColor": "#0B0E1A",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -45,12 +45,16 @@
           "resizeMode": "contain",
           "backgroundColor": "#0B0E1A"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0B0E1A"
+    "updates": {
+      "url": "https://u.expo.dev/7d106898-3f28-4f73-a4d0-e959a119384c",
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

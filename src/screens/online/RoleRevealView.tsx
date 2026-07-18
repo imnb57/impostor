@@ -13,6 +13,9 @@ import type { OnlinePhaseProps } from './types';
 export function RoleRevealView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps) {
   const isHost = room.hostId === selfUid;
   const self = room.players?.[selfUid];
+  // Rooms started by a pre-roles client only carry the legacy flag.
+  const role = self?.role ?? (self?.isImpostor ? 'impostor' : 'crew');
+  const payload = self?.payload ?? (self?.isImpostor ? { hint: room.hint } : { word: room.word });
 
   return (
     <Screen>
@@ -24,9 +27,9 @@ export function RoleRevealView({ room, roomCode, selfUid, onLeave }: OnlinePhase
 
       <View style={styles.body}>
         <RoleCard
-          isImpostor={self?.isImpostor ?? false}
-          word={room.word}
-          hint={room.hint}
+          role={role}
+          payload={payload}
+          mode={room.mode ?? 'classic'}
           categoryName={getCategory(room.category).name}
         />
       </View>

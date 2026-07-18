@@ -15,8 +15,7 @@ import type { ScreenProps } from '../../types/navigation';
 export function LocalRevealScreen({ navigation }: ScreenProps<'LocalReveal'>) {
   const t = useTheme();
   const players = useLocalGameStore((s) => s.players);
-  const word = useLocalGameStore((s) => s.word);
-  const hint = useLocalGameStore((s) => s.hint);
+  const mode = useLocalGameStore((s) => s.mode);
   const categoryId = useLocalGameStore((s) => s.categoryId);
   const [index, setIndex] = useState(0);
 
@@ -59,9 +58,9 @@ export function LocalRevealScreen({ navigation }: ScreenProps<'LocalReveal'>) {
 
         <RoleCard
           key={index}
-          isImpostor={player.isImpostor}
-          word={word}
-          hint={hint}
+          role={player.role}
+          payload={player.payload}
+          mode={mode}
           categoryName={getCategory(categoryId).name}
         />
       </Animated.View>

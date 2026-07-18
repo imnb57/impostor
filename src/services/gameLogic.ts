@@ -1,15 +1,8 @@
 import { getCategory } from '../constants/categories';
 import type { VoteTally } from '../types';
 
-
 export function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
-}
-
-/** Picks the round's secret word together with the hint the impostor gets. */
-export function pickRound(categoryId: string): { word: string; hint: string } {
-  const entry = pickRandom(getCategory(categoryId).words);
-  return { word: entry.word, hint: entry.hints.length ? pickRandom(entry.hints) : '' };
 }
 
 /** Pick `count` distinct random items from `items`. */
@@ -21,6 +14,31 @@ export function sample<T>(items: T[], count: number): T[] {
     picked.push(pool.splice(i, 1)[0]);
   }
   return picked;
+}
+
+/** Everything a round needs from the word bank, chosen once up front. */
+export interface RoundSeed {
+  word: string;
+  /** All facets of the word — dealt out in fragments mode. */
+  hints: string[];
+  /** The single clue an impostor is shown in the other modes. */
+  impostorHint: string;
+  /** A facet borrowed from a different word, for the impostor in fragments mode. */
+  decoyFragment: string;
+}
+
+export function pickRound(categoryId: string): RoundSeed {
+  const category = getCategory(categoryId);
+  const entry = pickRandom(category.words);
+  const others = category.words.filter((w) => w.word !== entry.word);
+  const decoySource = others.length ? pickRandom(others) : entry;
+
+  return {
+    word: entry.word,
+    hints: entry.hints.length ? entry.hints : [category.name],
+    impostorHint: entry.hints.length ? pickRandom(entry.hints) : category.name,
+    decoyFragment: decoySource.hints.length ? pickRandom(decoySource.hints) : category.name,
+  };
 }
 
 export function tallyVotes(votes: Record<string, string>): VoteTally {

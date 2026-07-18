@@ -8,6 +8,7 @@ import { haptics } from '../../services/haptics';
 import { useRoomStore } from '../../store/roomStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { ScreenProps } from '../../types/navigation';
+import { AssassinationView } from './AssassinationView';
 import { DiscussionView } from './DiscussionView';
 import { LobbyView } from './LobbyView';
 import { ResultsView } from './ResultsView';
@@ -81,6 +82,8 @@ export function OnlineRoomScreen({ navigation, route }: ScreenProps<'OnlineRoom'
       return <DiscussionView {...phase} />;
     case 'voting':
       return <VotingView {...phase} />;
+    case 'assassination':
+      return <AssassinationView {...phase} />;
     case 'results':
       return <ResultsView {...phase} />;
   }

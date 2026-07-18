@@ -13,27 +13,29 @@ import Animated, {
 import { motion, radius, space } from '../design/tokens';
 import { useGradient, useMotion, useTheme } from '../design/useTheme';
 import { haptics } from '../services/haptics';
+import { ROLE_META } from '../services/roles';
+import type { GameMode, RoleId, RolePayload } from '../types';
 import { Text } from './ui/Text';
 
 interface Props {
-  isImpostor: boolean;
-  word: string;
+  role: RoleId;
+  payload: RolePayload;
   categoryName: string;
-  /** Oblique clue shown only to impostors so they can bluff. */
-  hint?: string;
+  mode: GameMode;
 }
 
 /**
  * The signature interaction: press and hold to turn your card over.
- * Holding (rather than tapping) means a shoulder-surfer only ever sees
- * the back, and letting go instantly hides it again.
+ * Holding rather than tapping means a shoulder-surfer only ever sees the
+ * back, and letting go hides it instantly.
  */
-export function RoleCard({ isImpostor, word, categoryName, hint }: Props) {
+export function RoleCard({ role, payload, categoryName, mode }: Props) {
   const t = useTheme();
   const gradient = useGradient();
   const motionOn = useMotion();
+  const meta = ROLE_META[role];
 
-  const flip = useSharedValue(0); // 0 = hidden, 1 = revealed
+  const flip = useSharedValue(0);
   const pulse = useSharedValue(0);
 
   useEffect(() => {
@@ -44,15 +46,6 @@ export function RoleCard({ isImpostor, word, categoryName, hint }: Props) {
       true,
     );
   }, [motionOn, pulse]);
-
-  const reveal = () => {
-    haptics.reveal();
-    flip.value = withSpring(1, motion.spring.gentle);
-  };
-
-  const hide = () => {
-    flip.value = withSpring(0, motion.spring.gentle);
-  };
 
   const frontStyle = useAnimatedStyle(() => ({
     transform: [
@@ -75,15 +68,21 @@ export function RoleCard({ isImpostor, word, categoryName, hint }: Props) {
     opacity: interpolate(pulse.value, [0, 1], [0.75, 1]),
   }));
 
+  const accent = meta.sinister ? t.accent : t.accentEnd;
+
   return (
-    <Pressable onPressIn={reveal} onPressOut={hide} style={styles.wrap}>
-      {/* face down */}
+    <Pressable
+      onPressIn={() => {
+        haptics.reveal();
+        flip.value = withSpring(1, motion.spring.gentle);
+      }}
+      onPressOut={() => {
+        flip.value = withSpring(0, motion.spring.gentle);
+      }}
+      style={styles.wrap}
+    >
       <Animated.View
-        style={[
-          styles.face,
-          frontStyle,
-          { backgroundColor: t.surface, borderColor: t.stroke },
-        ]}
+        style={[styles.face, frontStyle, { backgroundColor: t.surface, borderColor: t.stroke }]}
       >
         <Animated.View style={fingerStyle}>
           <Text style={styles.emoji}>👆</Text>
@@ -96,56 +95,116 @@ export function RoleCard({ isImpostor, word, categoryName, hint }: Props) {
         </Text>
       </Animated.View>
 
-      {/* face up */}
       <Animated.View style={[styles.face, styles.faceBack, backStyle]}>
-        {isImpostor ? (
-          <View style={[styles.fill, { backgroundColor: t.bgElev, borderColor: t.accent }]}>
-            <Text style={styles.emoji}>🤫</Text>
-            <Text variant="title" center color={t.accent}>
-              IMPOSTOR
-            </Text>
-            <Text variant="caption" dim center>
-              Category: {categoryName}
-            </Text>
-            {hint ? (
-              <View style={[styles.hintChip, { borderColor: t.stroke, backgroundColor: t.surface }]}>
-                <Text variant="label" faint uppercase center>
-                  Your only clue
-                </Text>
-                <Text variant="subheading" center color={t.accentEnd}>
-                  {hint}
-                </Text>
-              </View>
-            ) : null}
-            <Text variant="caption" faint center style={styles.footnote}>
-              Blend in. Don't get caught.
-            </Text>
-          </View>
-        ) : (
-          <LinearGradient
-            colors={[gradient[2] + '26', gradient[1] + '1A', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.fill, { backgroundColor: t.bgElev, borderColor: t.accentEnd }]}
-          >
-            <Text variant="label" dim uppercase>
-              The secret word is
-            </Text>
-            <Text variant="display" center color={t.accentEnd} numberOfLines={2}>
-              {word}
-            </Text>
-            <Text variant="caption" faint center style={styles.footnote}>
-              Describe it — never say it.
-            </Text>
-          </LinearGradient>
-        )}
+        <LinearGradient
+          colors={[accent + '24', gradient[1] + '14', 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.fill, { backgroundColor: t.bgElev, borderColor: accent }]}
+        >
+          <Text style={styles.emoji}>{meta.emoji}</Text>
+          <Text variant="title" center color={accent}>
+            {meta.label}
+          </Text>
+
+          <RoleBody role={role} payload={payload} mode={mode} categoryName={categoryName} />
+
+          <Text variant="caption" faint center style={styles.footnote}>
+            {meta.tagline}
+          </Text>
+        </LinearGradient>
       </Animated.View>
     </Pressable>
   );
 }
 
+function RoleBody({
+  role,
+  payload,
+  mode,
+  categoryName,
+}: {
+  role: RoleId;
+  payload: RolePayload;
+  mode: GameMode;
+  categoryName: string;
+}) {
+  const t = useTheme();
+
+  // Fragments mode: everyone holds a piece, the impostor's just isn't real.
+  if (mode === 'fragments' && payload.fragment) {
+    return (
+      <>
+        <Text variant="label" dim uppercase center>
+          {role === 'impostor' ? 'Your fake fragment' : 'Your fragment'}
+        </Text>
+        <Text variant="heading" center color={t.accentEnd}>
+          {payload.fragment}
+        </Text>
+        <Text variant="caption" dim center>
+          {role === 'impostor'
+            ? 'The others hold real pieces of one word.'
+            : 'Piece the word together — one player is faking.'}
+        </Text>
+      </>
+    );
+  }
+
+  if (payload.word) {
+    return (
+      <>
+        <Text variant="label" dim uppercase center>
+          The secret word is
+        </Text>
+        <Text variant="display" center color={t.accentEnd} numberOfLines={2}>
+          {payload.word}
+        </Text>
+      </>
+    );
+  }
+
+  if (payload.knownImpostorName) {
+    return (
+      <>
+        <Text variant="caption" dim center>
+          You never learn the word. But you know this:
+        </Text>
+        <View style={[styles.chip, { borderColor: t.stroke, backgroundColor: t.surface }]}>
+          <Text variant="heading" center color={t.accentEnd}>
+            {payload.knownImpostorName}
+          </Text>
+          <Text variant="label" faint uppercase center>
+            is an impostor
+          </Text>
+        </View>
+        <Text variant="caption" dim center>
+          Point too hard and they will name you.
+        </Text>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Text variant="caption" dim center>
+        Category: {categoryName}
+      </Text>
+      {payload.hint ? (
+        <View style={[styles.chip, { borderColor: t.stroke, backgroundColor: t.surface }]}>
+          <Text variant="label" faint uppercase center>
+            Your only clue
+          </Text>
+          <Text variant="subheading" center color={t.accentEnd}>
+            {payload.hint}
+          </Text>
+        </View>
+      ) : null}
+    </>
+  );
+}
+
 const styles = StyleSheet.create({
-  wrap: { width: '100%', aspectRatio: 0.86, maxHeight: 420 },
+  wrap: { width: '100%', aspectRatio: 0.86, maxHeight: 430 },
   face: {
     ...StyleSheet.absoluteFill,
     borderRadius: radius.xxl,
@@ -169,12 +228,12 @@ const styles = StyleSheet.create({
     padding: space.xl,
   },
   emoji: { fontSize: 40, lineHeight: 46 },
-  hintChip: {
+  chip: {
     borderWidth: 1,
     borderRadius: radius.lg,
     paddingVertical: space.md,
     paddingHorizontal: space.lg,
-    marginTop: space.sm,
+    marginTop: space.xs,
     gap: 2,
     alignItems: 'center',
   },

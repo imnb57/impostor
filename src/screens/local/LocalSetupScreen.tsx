@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CategoryPicker } from '../../components/CategoryPicker';
+import { ModePicker } from '../../components/ModePicker';
 import { PlayerList } from '../../components/PlayerList';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -78,6 +79,15 @@ export function LocalSetupScreen({ navigation }: ScreenProps<'LocalSetup'>) {
           onRemove={(id) => game.removePlayer(Number(id))}
         />
       </View>
+
+      <Text variant="label" dim uppercase style={styles.sectionLabel}>
+        Mode
+      </Text>
+      <ModePicker
+        selected={game.mode}
+        playerCount={game.playerNames.length}
+        onSelect={game.setMode}
+      />
 
       <Text variant="label" dim uppercase style={styles.sectionLabel}>
         Category

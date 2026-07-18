@@ -1,6 +1,7 @@
 import { Alert, Share, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CategoryPicker } from '../../components/CategoryPicker';
+import { ModePicker } from '../../components/ModePicker';
 import { PlayerList } from '../../components/PlayerList';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -11,6 +12,7 @@ import { getCategory } from '../../constants/categories';
 import { space } from '../../design/tokens';
 import { useTheme } from '../../design/useTheme';
 import { maxImpostors } from '../../services/gameLogic';
+import { getMode } from '../../services/roles';
 import { haptics } from '../../services/haptics';
 import { startGame, updateRoomSettings } from '../../services/rooms';
 import type { OnlinePhaseProps } from './types';
@@ -60,6 +62,15 @@ export function LobbyView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps
 
       {isHost ? (
         <>
+          <Text variant="label" dim uppercase style={styles.sectionLabel}>
+            Mode
+          </Text>
+          <ModePicker
+            selected={room.mode ?? 'classic'}
+            playerCount={players.length}
+            onSelect={(mode) => updateRoomSettings(roomCode, { mode }).catch(() => {})}
+          />
+
           <Text variant="label" dim uppercase style={styles.sectionLabel}>
             Category
           </Text>
@@ -128,6 +139,9 @@ export function LobbyView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps
       ) : (
         <Card style={styles.waiting}>
           <Text variant="bodyStrong" center>
+            {getMode(room.mode ?? 'classic').emoji}  {getMode(room.mode ?? 'classic').name}
+          </Text>
+          <Text variant="caption" dim center>
             {category.emoji}  {category.name}
           </Text>
           <Text variant="caption" faint center>

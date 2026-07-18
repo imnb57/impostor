@@ -8,7 +8,9 @@ import { Text } from '../../components/ui/Text';
 import { radius, space } from '../../design/tokens';
 import { useTheme } from '../../design/useTheme';
 import { haptics } from '../../services/haptics';
-import { castVote, showResults } from '../../services/rooms';
+import { beginAssassination, castVote, showResults } from '../../services/rooms';
+import { needsAssassination } from '../../services/resolveRound';
+import type { RoleId } from '../../types';
 import type { OnlinePhaseProps } from './types';
 
 export function VotingView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps) {
@@ -23,8 +25,17 @@ export function VotingView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProp
   const allVoted = connected.length > 0 && connected.every(([, p]) => p.hasVoted);
 
   useEffect(() => {
-    if (isHost && allVoted) showResults(roomCode).catch(() => {});
-  }, [isHost, allVoted, roomCode]);
+    if (!isHost || !allVoted) return;
+    const resolvable = players.map(([uid, p]) => ({
+      id: uid,
+      name: p.name,
+      role: (p.role ?? (p.isImpostor ? 'impostor' : 'crew')) as RoleId,
+    }));
+    const next = needsAssassination(resolvable, room.votes ?? {})
+      ? beginAssassination(roomCode)
+      : showResults(roomCode);
+    next.catch(() => {});
+  }, [isHost, allVoted, roomCode, players, room.votes]);
 
   const confirm = () => {
     if (!selected) return;

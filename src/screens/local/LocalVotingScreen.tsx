@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { VoteGrid } from '../../components/VoteGrid';
 import { Button } from '../../components/ui/Button';
@@ -7,7 +7,8 @@ import { Screen } from '../../components/ui/Screen';
 import { Text } from '../../components/ui/Text';
 import { space } from '../../design/tokens';
 import { haptics } from '../../services/haptics';
-import { useLocalGameStore } from '../../store/localGameStore';
+import { needsAssassination } from '../../services/resolveRound';
+import { localResolvables, useLocalGameStore } from '../../store/localGameStore';
 import type { ScreenProps } from '../../types/navigation';
 
 export function LocalVotingScreen({ navigation }: ScreenProps<'LocalVoting'>) {
@@ -25,13 +26,24 @@ export function LocalVotingScreen({ navigation }: ScreenProps<'LocalVoting'>) {
     if (selected === null) return;
     haptics.success();
     castVote(index, Number(selected));
-    if (index === players.length - 1) {
-      navigation.replace('LocalResults');
-    } else {
+
+    if (index < players.length - 1) {
       setIndex(index + 1);
       setHandedOver(false);
       setSelected(null);
+      return;
     }
+
+    // Last vote is in — read the finished tally straight from the store.
+    const finished = useLocalGameStore.getState();
+    const votes: Record<string, string> = {};
+    for (const [v, target] of Object.entries(finished.votes)) votes[v] = String(target);
+
+    navigation.replace(
+      needsAssassination(localResolvables(finished.players), votes)
+        ? 'LocalAssassination'
+        : 'LocalResults',
+    );
   };
 
   return (

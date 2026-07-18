@@ -3,7 +3,8 @@ import { CATEGORIES } from '../constants/categories';
 import type { Room } from '../types';
 import { ensureSignedIn } from './auth';
 import { getDb } from './firebase';
-import { generateRoomCode, maxImpostors, pickRound, sample } from './gameLogic';
+import { generateRoomCode, pickRound } from './gameLogic';
+import { assignRoles, buildPayloads } from './roles';
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -29,6 +30,7 @@ export async function createRoom(hostName: string): Promise<RoomSession> {
     const room: Room = {
       hostId: uid,
       status: 'lobby',
+      mode: 'classic',
       category: CATEGORIES[0].id,
       impostorCount: 1,
       timerSeconds: 180,
@@ -36,7 +38,13 @@ export async function createRoom(hostName: string): Promise<RoomSession> {
       hint: '',
       createdAt: Date.now(),
       players: {
-        [uid]: { name: hostName, connected: true, isImpostor: false, hasVoted: false },
+        [uid]: {
+          name: hostName,
+          connected: true,
+          role: 'crew',
+          payload: {},
+          hasVoted: false,
+        },
       },
     };
     await set(roomRef, room);
@@ -63,7 +71,8 @@ export async function joinRoom(roomCode: string, name: string): Promise<RoomSess
     await set(ref(db, `rooms/${roomCode}/players/${uid}`), {
       name,
       connected: true,
-      isImpostor: false,
+      role: 'crew',
+      payload: {},
       hasVoted: false,
     });
   }
@@ -83,29 +92,53 @@ export function subscribeRoom(
 
 export async function updateRoomSettings(
   roomCode: string,
-  settings: Partial<Pick<Room, 'category' | 'impostorCount' | 'timerSeconds'>>,
+  settings: Partial<Pick<Room, 'category' | 'impostorCount' | 'timerSeconds' | 'mode'>>,
 ): Promise<void> {
   await update(ref(getDb(), `rooms/${roomCode}`), settings);
 }
 
-/** Host only: pick the word, assign impostors, move everyone to reveal. */
+/** Host only: pick the word, deal roles for the mode, move everyone to reveal. */
 export async function startGame(roomCode: string, room: Room): Promise<void> {
-  const playerIds = Object.keys(room.players ?? {});
-  const impostorTotal = Math.min(room.impostorCount, maxImpostors(playerIds.length));
-  const impostorIds = new Set(sample(playerIds, impostorTotal));
-  const round = pickRound(room.category);
+  const players = room.players ?? {};
+  const playerIds = Object.keys(players);
+  const namesById = Object.fromEntries(playerIds.map((id) => [id, players[id].name]));
+  const mode = room.mode ?? 'classic';
+  const seed = pickRound(room.category);
+  const roles = assignRoles(mode, playerIds, room.impostorCount);
+  const payloads = buildPayloads(mode, roles, seed, namesById);
+
   const updates: Record<string, unknown> = {
     status: 'reveal',
-    word: round.word,
-    hint: round.hint,
+    word: seed.word,
+    hint: seed.impostorHint,
     votes: null,
     discussionEndsAt: null,
+    assassinGuess: null,
   };
   for (const id of playerIds) {
-    updates[`players/${id}/isImpostor`] = impostorIds.has(id);
+    updates[`players/${id}/role`] = roles[id];
+    updates[`players/${id}/payload`] = payloads[id] ?? {};
+    // Mirrored for any client still running a pre-roles build.
+    updates[`players/${id}/isImpostor`] = roles[id] === 'impostor';
     updates[`players/${id}/hasVoted`] = false;
   }
   await update(ref(getDb(), `rooms/${roomCode}`), updates);
+}
+
+/** Host only: the vote ejected an impostor and an informant is in play. */
+export async function beginAssassination(roomCode: string): Promise<void> {
+  await update(ref(getDb(), `rooms/${roomCode}`), { status: 'assassination' });
+}
+
+/** An impostor names who they believe the informant was. */
+export async function submitAssassinGuess(
+  roomCode: string,
+  targetUid: string,
+): Promise<void> {
+  await update(ref(getDb(), `rooms/${roomCode}`), {
+    assassinGuess: targetUid,
+    status: 'results',
+  });
 }
 
 export async function beginDiscussion(roomCode: string, timerSeconds: number): Promise<void> {
@@ -140,10 +173,13 @@ export async function playAgain(roomCode: string, room: Room): Promise<void> {
     status: 'lobby',
     word: '',
     hint: '',
+    assassinGuess: null,
     votes: null,
     discussionEndsAt: null,
   };
   for (const id of Object.keys(room.players ?? {})) {
+    updates[`players/${id}/role`] = 'crew';
+    updates[`players/${id}/payload`] = {};
     updates[`players/${id}/isImpostor`] = false;
     updates[`players/${id}/hasVoted`] = false;
   }

@@ -12,12 +12,14 @@ import { gradientStops, PALETTES } from '../design/palettes';
 import { radius, space } from '../design/tokens';
 import { useTheme } from '../design/useTheme';
 import { haptics } from '../services/haptics';
+import { useAppUpdates } from '../hooks/useAppUpdates';
 import { useSettingsStore } from '../store/settingsStore';
 import type { ScreenProps } from '../types/navigation';
 
 export function SettingsScreen({ navigation }: ScreenProps<'Settings'>) {
   const t = useTheme();
   const s = useSettingsStore();
+  const updates = useAppUpdates();
 
   return (
     <Screen scroll>
@@ -131,8 +133,28 @@ export function SettingsScreen({ navigation }: ScreenProps<'Settings'>) {
             <Text variant="caption" dim>
               Version
             </Text>
-            <Text variant="caption">1.1.0</Text>
+            <Text variant="caption">1.2.0</Text>
           </View>
+          <View style={[styles.divider, { backgroundColor: t.stroke }]} />
+          <Button
+            label={
+              updates.state === 'checking'
+                ? 'Checking…'
+                : updates.state === 'downloading'
+                  ? 'Downloading…'
+                  : updates.state === 'ready'
+                    ? 'Restart to update'
+                    : 'Check for updates'
+            }
+            variant="ghost"
+            size="md"
+            onPress={updates.state === 'ready' ? updates.apply : updates.check}
+          />
+          {updates.message ? (
+            <Text variant="caption" faint center>
+              {updates.message}
+            </Text>
+          ) : null}
           <View style={[styles.divider, { backgroundColor: t.stroke }]} />
           <Button
             label="Replay the intro"
