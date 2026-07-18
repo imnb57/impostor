@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import {
   GoogleAuthProvider,
   linkWithCredential,
@@ -11,6 +12,17 @@ export const googleWebClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 export const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 
 export const isGoogleAuthConfigured = Boolean(googleWebClientId);
+
+/**
+ * True only when it is safe to mount the Google auth hook. expo-auth-session
+ * throws if the platform's client ID is absent, so every caller must gate on
+ * this before rendering anything that calls useGoogleSignIn.
+ */
+export function canUseGoogleSignIn(): boolean {
+  const platformIdPresent =
+    Platform.OS === 'android' ? Boolean(googleAndroidClientId) : Boolean(googleWebClientId);
+  return isGoogleAuthConfigured && platformIdPresent && !isRunningInExpoGo;
+}
 
 // The auth.expo.io proxy is gone, so the OAuth redirect needs the app's own
 // scheme — which only exists in a real build, not inside the Expo Go client.

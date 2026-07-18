@@ -2,7 +2,7 @@
   "expo": {
     "name": "Impostor",
     "slug": "impostor",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "scheme": [
       "impostor",
       "com.imnb57.impostor"
@@ -10,16 +10,16 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#0F1220",
+    "backgroundColor": "#0B0E1A",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.imnb57.impostor"
     },
     "android": {
       "package": "com.imnb57.impostor",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
-        "backgroundColor": "#0F1220",
+        "backgroundColor": "#0B0E1A",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -34,6 +34,23 @@
         "projectId": "7d106898-3f28-4f73-a4d0-e959a119384c"
       }
     },
-    "owner": "codernitesh"
+    "owner": "codernitesh",
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B0E1A"
+        }
+      ]
+    ],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0B0E1A"
+    }
   }
 }

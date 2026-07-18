@@ -1,179 +1,187 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { Button } from '../components/Button';
-import { Screen } from '../components/Screen';
-import { TextField } from '../components/TextField';
-import { colors, font, radius, spacing } from '../constants/theme';
-import { useGoogleProfile, useGoogleSignIn } from '../hooks/useGoogleSignIn';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { Card } from '../components/ui/Card';
+import { Screen } from '../components/ui/Screen';
+import { Text } from '../components/ui/Text';
+import { TextField } from '../components/ui/TextField';
+import { radius, space } from '../design/tokens';
+import { useGradient, useTheme } from '../design/useTheme';
+import { GoogleAuthButton } from '../components/GoogleAuthButton';
+import { useGoogleProfile } from '../hooks/useGoogleSignIn';
 import { isFirebaseConfigured } from '../services/firebase';
-import { isRunningInExpoGo, signOutOfGoogle } from '../services/googleAuth';
+import { haptics } from '../services/haptics';
+import { canUseGoogleSignIn, isRunningInExpoGo, signOutOfGoogle } from '../services/googleAuth';
 import { useSettingsStore } from '../store/settingsStore';
 import type { ScreenProps } from '../types/navigation';
 
 export function HomeScreen({ navigation }: ScreenProps<'Home'>) {
+  const t = useTheme();
+  const gradient = useGradient();
   const playerName = useSettingsStore((s) => s.playerName);
   const setPlayerName = useSettingsStore((s) => s.setPlayerName);
 
   const profile = useGoogleProfile();
-  const google = useGoogleSignIn((signedInProfile) => {
-    if (signedInProfile?.displayName && !useSettingsStore.getState().playerName.trim()) {
-      setPlayerName(signedInProfile.displayName);
-    }
-  });
 
   return (
     <Screen scroll>
-      <View style={styles.hero}>
-        <Text style={styles.title}>🕵️ IMPOSTOR</Text>
-        <Text style={styles.tagline}>
-          Everyone knows the secret word. One of you is lying.
+      <View style={styles.topBar}>
+        <Pressable
+          hitSlop={12}
+          onPress={() => {
+            haptics.tap();
+            navigation.navigate('Settings');
+          }}
+          style={[styles.gear, { backgroundColor: t.surface, borderColor: t.stroke }]}
+        >
+          <Text variant="bodyStrong">⚙︎</Text>
+        </Pressable>
+      </View>
+
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.hero}>
+        <Text style={styles.mark}>🕵️</Text>
+        <Text variant="display" center>
+          IMPOSTOR
         </Text>
-      </View>
+        <Text variant="body" dim center style={styles.tagline}>
+          Everyone knows the word.{'\n'}One of you is lying.
+        </Text>
+      </Animated.View>
 
-      <Text style={styles.label}>Your name (used in online games)</Text>
-      <TextField
-        value={playerName}
-        onChangeText={setPlayerName}
-        placeholder="e.g. Alex"
-        maxLength={16}
-        autoCapitalize="words"
-      />
+      <Animated.View entering={FadeInDown.delay(90).springify().damping(18)}>
+        <TextField
+          label="Your name"
+          value={playerName}
+          onChangeText={setPlayerName}
+          placeholder="Used in online games"
+          maxLength={16}
+          autoCapitalize="words"
+        />
+      </Animated.View>
 
-      <View style={styles.buttons}>
-        <Button
-          label="🎉  Pass & Play — one phone"
-          onPress={() => navigation.navigate('LocalSetup')}
-        />
-        <Button
-          label="🌐  Play Online"
-          variant="secondary"
-          onPress={() => navigation.navigate('OnlineEntry')}
-        />
-      </View>
+      <Animated.View entering={FadeInDown.delay(150).springify().damping(18)} style={styles.modes}>
+        <Pressable
+          onPress={() => {
+            haptics.press();
+            navigation.navigate('LocalSetup');
+          }}
+        >
+          <LinearGradient
+            colors={gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryMode}
+          >
+            <Text style={styles.modeEmoji}>🎉</Text>
+            <View style={styles.modeText}>
+              <Text variant="heading" color={t.onAccent}>
+                Pass &amp; Play
+              </Text>
+              <Text variant="caption" color={t.onAccent} style={styles.modeSub}>
+                One phone · works offline
+              </Text>
+            </View>
+          </LinearGradient>
+        </Pressable>
+
+        <Card
+          onPress={() => {
+            haptics.press();
+            navigation.navigate('OnlineEntry');
+          }}
+          style={styles.secondaryMode}
+        >
+          <Text style={styles.modeEmoji}>🌐</Text>
+          <View style={styles.modeText}>
+            <Text variant="heading">Play Online</Text>
+            <Text variant="caption" faint>
+              Join friends with a room code
+            </Text>
+          </View>
+        </Card>
+      </Animated.View>
 
       {isFirebaseConfigured ? (
-        <View style={styles.profileSection}>
+        <Animated.View entering={FadeIn.delay(240)} style={styles.account}>
           {profile ? (
             <View style={styles.profileRow}>
               {profile.photoURL ? (
                 <Image source={{ uri: profile.photoURL }} style={styles.avatar} />
               ) : (
-                <View style={[styles.avatar, styles.avatarFallback]}>
-                  <Text style={styles.avatarInitial}>
-                    {(profile.displayName ?? profile.email ?? '?').charAt(0).toUpperCase()}
-                  </Text>
-                </View>
+                <View style={[styles.avatar, { backgroundColor: t.surface }]} />
               )}
               <View style={styles.profileText}>
-                <Text style={styles.profileName} numberOfLines={1}>
-                  {profile.displayName ?? 'Google account'}
+                <Text variant="caption" numberOfLines={1}>
+                  {profile.displayName ?? 'Signed in'}
                 </Text>
-                {profile.email ? (
-                  <Text style={styles.profileEmail} numberOfLines={1}>
-                    {profile.email}
-                  </Text>
-                ) : null}
+                <Text variant="caption" faint numberOfLines={1}>
+                  {profile.email ?? ''}
+                </Text>
               </View>
-              <Button label="Sign out" variant="ghost" onPress={() => signOutOfGoogle()} />
-            </View>
-          ) : (
-            <>
-              <Button
-                label={google.busy ? 'Signing in…' : 'Continue with Google'}
-                variant="secondary"
-                disabled={!google.available || google.busy}
-                onPress={google.signIn}
-              />
-              {isRunningInExpoGo ? (
-                <Text style={styles.hint}>
-                  Google sign-in works in the installed app (APK), not inside Expo Go.
+              <Pressable
+                hitSlop={10}
+                onPress={() => {
+                  haptics.tap();
+                  signOutOfGoogle();
+                }}
+              >
+                <Text variant="caption" faint>
+                  Sign out
                 </Text>
-              ) : null}
-            </>
-          )}
-          {google.error ? <Text style={styles.error}>{google.error}</Text> : null}
-        </View>
+              </Pressable>
+            </View>
+          ) : canUseGoogleSignIn() ? (
+            <GoogleAuthButton
+              onSignedIn={(signedIn) => {
+                if (signedIn?.displayName && !useSettingsStore.getState().playerName.trim()) {
+                  setPlayerName(signedIn.displayName);
+                }
+              }}
+            />
+          ) : isRunningInExpoGo ? (
+            <Text variant="caption" faint center>
+              Google sign-in works in the installed app
+            </Text>
+          ) : null}
+        </Animated.View>
       ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: {
-    alignItems: 'center',
-    marginTop: spacing.xxl,
-    marginBottom: spacing.xl,
-  },
-  title: {
-    color: colors.text,
-    fontSize: font.title,
-    fontWeight: '800',
-    letterSpacing: 2,
-  },
-  tagline: {
-    color: colors.textDim,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
-  label: {
-    color: colors.textDim,
-    fontSize: font.small,
-    marginTop: spacing.lg,
-  },
-  buttons: {
-    marginTop: spacing.xl,
-    gap: spacing.sm,
-  },
-  profileSection: {
-    marginTop: spacing.xl,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingTop: spacing.lg,
-  },
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
+  topBar: { flexDirection: 'row', justifyContent: 'flex-end' },
+  gear: {
+    width: 40,
+    height: 40,
     borderRadius: radius.pill,
-  },
-  avatarFallback: {
-    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarInitial: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '700',
+  hero: { alignItems: 'center', marginTop: space.lg, marginBottom: space.xxl, gap: space.xs },
+  mark: { fontSize: 60, lineHeight: 68 },
+  tagline: { marginTop: space.sm },
+  modes: { marginTop: space.xl, gap: space.md },
+  primaryMode: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.base,
+    borderRadius: radius.xl,
+    padding: space.lg,
   },
-  profileText: {
-    flex: 1,
-  },
-  profileName: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '600',
-  },
-  profileEmail: {
-    color: colors.textDim,
-    fontSize: font.small,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
-  error: {
-    color: colors.danger,
-    fontSize: font.small,
-    textAlign: 'center',
-    marginTop: spacing.sm,
+  secondaryMode: { flexDirection: 'row', alignItems: 'center', gap: space.base },
+  modeEmoji: { fontSize: 32, lineHeight: 38 },
+  modeText: { flex: 1, gap: 2 },
+  modeSub: { opacity: 0.75 },
+  account: { marginTop: space.xxl, gap: space.sm },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  avatar: { width: 34, height: 34, borderRadius: radius.pill },
+  profileText: { flex: 1 },
+  googleBtn: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    paddingVertical: space.md,
+    alignItems: 'center',
   },
 });

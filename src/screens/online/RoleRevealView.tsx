@@ -1,9 +1,12 @@
-import { StyleSheet, Text } from 'react-native';
-import { Button } from '../../components/Button';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { RoleCard } from '../../components/RoleCard';
-import { Screen } from '../../components/Screen';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
 import { getCategory } from '../../constants/categories';
-import { colors, font, spacing } from '../../constants/theme';
+import { space } from '../../design/tokens';
+import { haptics } from '../../services/haptics';
 import { beginDiscussion } from '../../services/rooms';
 import type { OnlinePhaseProps } from './types';
 
@@ -13,37 +16,44 @@ export function RoleRevealView({ room, roomCode, selfUid, onLeave }: OnlinePhase
 
   return (
     <Screen>
-      <Text style={styles.heading}>Your role</Text>
-      <RoleCard
-        isImpostor={self?.isImpostor ?? false}
-        word={room.word}
-        categoryName={getCategory(room.category).name}
-      />
-      {isHost ? (
-        <Button
-          label="Everyone's ready — start discussion"
-          onPress={() => beginDiscussion(roomCode, room.timerSeconds).catch(() => {})}
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="label" dim uppercase center>
+          Your role
+        </Text>
+      </Animated.View>
+
+      <View style={styles.body}>
+        <RoleCard
+          isImpostor={self?.isImpostor ?? false}
+          word={room.word}
+          hint={room.hint}
+          categoryName={getCategory(room.category).name}
         />
-      ) : (
-        <Text style={styles.hint}>Waiting for the host to start the discussion…</Text>
-      )}
-      <Button label="Leave room" variant="ghost" onPress={onLeave} />
+      </View>
+
+      <Animated.View entering={FadeIn.delay(300)} style={styles.footer}>
+        {isHost ? (
+          <Button
+            label="Everyone ready — start discussion"
+            onPress={() => {
+              haptics.success();
+              beginDiscussion(roomCode, room.timerSeconds).catch(() => {});
+            }}
+            silent
+          />
+        ) : (
+          <Text variant="caption" dim center>
+            Waiting for the host to start the discussion…
+          </Text>
+        )}
+        <Button label="Leave room" variant="ghost" size="md" onPress={onLeave} />
+      </Animated.View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    color: colors.text,
-    fontSize: font.heading,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginVertical: spacing.md,
-  },
+  header: { marginTop: space.sm },
+  body: { flex: 1, justifyContent: 'center' },
+  footer: { gap: space.xs },
 });

@@ -1,50 +1,73 @@
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
-import { Button } from '../../components/Button';
-import { Screen } from '../../components/Screen';
+import { Alert, StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { VoteGrid } from '../../components/VoteGrid';
-import { colors, font, spacing } from '../../constants/theme';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
+import { radius, space } from '../../design/tokens';
+import { useTheme } from '../../design/useTheme';
+import { haptics } from '../../services/haptics';
 import { castVote, showResults } from '../../services/rooms';
 import type { OnlinePhaseProps } from './types';
 
 export function VotingView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps) {
+  const t = useTheme();
   const isHost = room.hostId === selfUid;
   const players = Object.entries(room.players ?? {});
   const myVote = room.votes?.[selfUid];
   const [selected, setSelected] = useState<string | null>(null);
 
   const votedCount = players.filter(([, p]) => p.hasVoted).length;
-  const connectedPlayers = players.filter(([, p]) => p.connected);
-  const allVoted =
-    connectedPlayers.length > 0 && connectedPlayers.every(([, p]) => p.hasVoted);
+  const connected = players.filter(([, p]) => p.connected);
+  const allVoted = connected.length > 0 && connected.every(([, p]) => p.hasVoted);
 
-  // Host's device reveals results once every connected player has voted.
   useEffect(() => {
-    if (isHost && allVoted) {
-      showResults(roomCode).catch(() => {});
-    }
+    if (isHost && allVoted) showResults(roomCode).catch(() => {});
   }, [isHost, allVoted, roomCode]);
 
-  const confirmVote = () => {
+  const confirm = () => {
     if (!selected) return;
-    castVote(roomCode, selfUid, selected).catch((error) =>
-      Alert.alert('Vote failed', error instanceof Error ? error.message : 'Try again.'),
+    haptics.success();
+    castVote(roomCode, selfUid, selected).catch((e) =>
+      Alert.alert('Vote failed', e instanceof Error ? e.message : 'Try again.'),
     );
   };
 
   return (
     <Screen scroll>
-      <Text style={styles.phase}>🗳️ Voting</Text>
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="label" dim uppercase center>
+          Voting
+        </Text>
+        <Text variant="title" center>
+          {myVote ? 'Vote locked' : 'Who is the impostor?'}
+        </Text>
+      </Animated.View>
+
       {myVote ? (
-        <>
-          <Text style={styles.hint}>Vote cast! Waiting for the others…</Text>
-          <Text style={styles.progress}>
+        <Animated.View entering={FadeIn} style={styles.waiting}>
+          <Text style={styles.emoji}>🗳️</Text>
+          <Text variant="body" dim center>
+            Waiting for the others…
+          </Text>
+          <View style={styles.progressRow}>
+            {players.map(([uid, p]) => (
+              <View
+                key={uid}
+                style={[
+                  styles.pip,
+                  { backgroundColor: p.hasVoted ? t.accent : t.stroke },
+                ]}
+              />
+            ))}
+          </View>
+          <Text variant="caption" faint center>
             {votedCount} of {players.length} voted
           </Text>
-        </>
+        </Animated.View>
       ) : (
-        <>
-          <Text style={styles.hint}>Who is the impostor?</Text>
+        <Animated.View entering={FadeIn} style={styles.block}>
           <VoteGrid
             options={players
               .filter(([uid]) => uid !== selfUid)
@@ -52,31 +75,20 @@ export function VotingView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProp
             selectedId={selected}
             onSelect={setSelected}
           />
-          <Button label="Confirm vote" disabled={!selected} onPress={confirmVote} />
-        </>
+          <Button label="Lock in vote" disabled={!selected} onPress={confirm} silent />
+        </Animated.View>
       )}
-      <Button label="Leave room" variant="ghost" onPress={onLeave} />
+
+      <Button label="Leave room" variant="ghost" size="md" onPress={onLeave} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  phase: {
-    color: colors.textDim,
-    fontSize: font.heading,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: spacing.lg,
-  },
-  hint: {
-    color: colors.text,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginVertical: spacing.md,
-  },
-  progress: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-  },
+  header: { marginTop: space.lg, marginBottom: space.xl, gap: space.xs },
+  block: { gap: space.lg },
+  waiting: { alignItems: 'center', gap: space.md, marginVertical: space.xxl },
+  emoji: { fontSize: 48, lineHeight: 56 },
+  progressRow: { flexDirection: 'row', gap: space.sm },
+  pip: { width: 10, height: 10, borderRadius: radius.pill },
 });

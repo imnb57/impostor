@@ -1,35 +1,51 @@
-import { Alert, StyleSheet, Text } from 'react-native';
-import { Button } from '../../components/Button';
+import { Alert, Share, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CategoryPicker } from '../../components/CategoryPicker';
 import { PlayerList } from '../../components/PlayerList';
-import { Screen } from '../../components/Screen';
-import { Stepper } from '../../components/Stepper';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Screen } from '../../components/ui/Screen';
+import { Stepper } from '../../components/ui/Stepper';
+import { Text } from '../../components/ui/Text';
 import { getCategory } from '../../constants/categories';
-import { colors, font, spacing } from '../../constants/theme';
+import { space } from '../../design/tokens';
+import { useTheme } from '../../design/useTheme';
 import { maxImpostors } from '../../services/gameLogic';
+import { haptics } from '../../services/haptics';
 import { startGame, updateRoomSettings } from '../../services/rooms';
 import type { OnlinePhaseProps } from './types';
 
 const MIN_PLAYERS = 3;
 
 export function LobbyView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps) {
+  const t = useTheme();
   const isHost = room.hostId === selfUid;
   const players = Object.entries(room.players ?? {});
-  const impostorCap = maxImpostors(players.length);
+  const cap = maxImpostors(players.length);
+  const category = getCategory(room.category);
 
-  const handleStart = () => {
-    startGame(roomCode, room).catch((error) =>
-      Alert.alert('Could not start', error instanceof Error ? error.message : 'Try again.'),
-    );
+  const share = () => {
+    haptics.tap();
+    Share.share({
+      message: `Join my Impostor game — room code ${roomCode}. Get the app: https://imnb57.github.io/impostor/`,
+    }).catch(() => {});
   };
 
   return (
     <Screen scroll>
-      <Text style={styles.codeLabel}>ROOM CODE</Text>
-      <Text style={styles.code}>{roomCode}</Text>
-      <Text style={styles.hint}>Friends join from their phones with this code.</Text>
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.codeBlock}>
+        <Text variant="label" faint uppercase center>
+          Room code
+        </Text>
+        <Text variant="code" center color={t.accentEnd}>
+          {roomCode}
+        </Text>
+        <Button label="Share invite" variant="ghost" size="md" onPress={share} silent />
+      </Animated.View>
 
-      <Text style={styles.heading}>Players ({players.length})</Text>
+      <Text variant="label" dim uppercase style={styles.sectionLabel}>
+        Players · {players.length}
+      </Text>
       <PlayerList
         players={players.map(([uid, p]) => ({
           id: uid,
@@ -44,102 +60,96 @@ export function LobbyView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps
 
       {isHost ? (
         <>
-          <Text style={styles.heading}>Category</Text>
+          <Text variant="label" dim uppercase style={styles.sectionLabel}>
+            Category
+          </Text>
           <CategoryPicker
             selectedId={room.category}
             onSelect={(id) => updateRoomSettings(roomCode, { category: id }).catch(() => {})}
           />
-          <Text style={styles.heading}>Settings</Text>
-          <Stepper
-            label="Impostors"
-            valueLabel={String(Math.min(room.impostorCount, impostorCap))}
-            onDecrement={() =>
-              updateRoomSettings(roomCode, {
-                impostorCount: Math.max(1, room.impostorCount - 1),
-              }).catch(() => {})
-            }
-            onIncrement={() =>
-              updateRoomSettings(roomCode, {
-                impostorCount: Math.min(impostorCap, room.impostorCount + 1),
-              }).catch(() => {})
-            }
-            decrementDisabled={room.impostorCount <= 1}
-            incrementDisabled={room.impostorCount >= impostorCap}
-          />
-          <Stepper
-            label="Discussion timer"
-            valueLabel={`${Math.round(room.timerSeconds / 60)} min`}
-            onDecrement={() =>
-              updateRoomSettings(roomCode, {
-                timerSeconds: Math.max(60, room.timerSeconds - 60),
-              }).catch(() => {})
-            }
-            onIncrement={() =>
-              updateRoomSettings(roomCode, {
-                timerSeconds: Math.min(600, room.timerSeconds + 60),
-              }).catch(() => {})
-            }
-            decrementDisabled={room.timerSeconds <= 60}
-            incrementDisabled={room.timerSeconds >= 600}
-          />
+
+          <Text variant="label" dim uppercase style={styles.sectionLabel}>
+            Round
+          </Text>
+          <Card>
+            <Stepper
+              label="Impostors"
+              hint={`Up to ${cap} with this group`}
+              value={String(Math.min(room.impostorCount, cap))}
+              onDecrement={() =>
+                updateRoomSettings(roomCode, {
+                  impostorCount: Math.max(1, room.impostorCount - 1),
+                }).catch(() => {})
+              }
+              onIncrement={() =>
+                updateRoomSettings(roomCode, {
+                  impostorCount: Math.min(cap, room.impostorCount + 1),
+                }).catch(() => {})
+              }
+              minusDisabled={room.impostorCount <= 1}
+              plusDisabled={room.impostorCount >= cap}
+            />
+            <View style={[styles.divider, { backgroundColor: t.stroke }]} />
+            <Stepper
+              label="Discussion"
+              value={`${Math.round(room.timerSeconds / 60)} min`}
+              onDecrement={() =>
+                updateRoomSettings(roomCode, {
+                  timerSeconds: Math.max(60, room.timerSeconds - 60),
+                }).catch(() => {})
+              }
+              onIncrement={() =>
+                updateRoomSettings(roomCode, {
+                  timerSeconds: Math.min(600, room.timerSeconds + 60),
+                }).catch(() => {})
+              }
+              minusDisabled={room.timerSeconds <= 60}
+              plusDisabled={room.timerSeconds >= 600}
+            />
+          </Card>
+
           <Button
             label={
               players.length < MIN_PLAYERS
-                ? `Start game (need ${MIN_PLAYERS - players.length} more)`
+                ? `Waiting for ${MIN_PLAYERS - players.length} more`
                 : 'Start game'
             }
             disabled={players.length < MIN_PLAYERS}
-            onPress={handleStart}
+            onPress={() => {
+              haptics.success();
+              startGame(roomCode, room).catch((e) =>
+                Alert.alert('Could not start', e instanceof Error ? e.message : 'Try again.'),
+              );
+            }}
+            style={styles.start}
+            silent
           />
         </>
       ) : (
-        <>
-          <Text style={styles.summary}>
-            {getCategory(room.category).emoji} {getCategory(room.category).name} ·{' '}
-            {room.impostorCount} impostor{room.impostorCount === 1 ? '' : 's'} ·{' '}
-            {Math.round(room.timerSeconds / 60)} min
+        <Card style={styles.waiting}>
+          <Text variant="bodyStrong" center>
+            {category.emoji}  {category.name}
           </Text>
-          <Text style={styles.hint}>Waiting for the host to start…</Text>
-        </>
+          <Text variant="caption" faint center>
+            {room.impostorCount} impostor{room.impostorCount === 1 ? '' : 's'} ·{' '}
+            {Math.round(room.timerSeconds / 60)} min discussion
+          </Text>
+          <Text variant="caption" dim center style={styles.waitingNote}>
+            Waiting for the host to start…
+          </Text>
+        </Card>
       )}
 
-      <Button label="Leave room" variant="ghost" onPress={onLeave} />
+      <Button label="Leave room" variant="ghost" size="md" onPress={onLeave} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  codeLabel: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    letterSpacing: 2,
-    marginTop: spacing.md,
-  },
-  code: {
-    color: colors.secondary,
-    fontSize: 56,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: 8,
-  },
-  heading: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '700',
-    marginTop: spacing.lg,
-    marginBottom: spacing.xs,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    marginVertical: spacing.sm,
-  },
-  summary: {
-    color: colors.text,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginTop: spacing.lg,
-  },
+  codeBlock: { alignItems: 'center', gap: space.xs, marginBottom: space.lg },
+  sectionLabel: { marginTop: space.xl, marginBottom: space.md },
+  divider: { height: 1, marginVertical: space.sm },
+  start: { marginTop: space.xl },
+  waiting: { marginTop: space.xl, gap: space.xs },
+  waitingNote: { marginTop: space.sm },
 });

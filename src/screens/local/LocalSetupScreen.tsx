@@ -1,109 +1,136 @@
-import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
-import { Button } from '../../components/Button';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CategoryPicker } from '../../components/CategoryPicker';
 import { PlayerList } from '../../components/PlayerList';
-import { Screen } from '../../components/Screen';
-import { Stepper } from '../../components/Stepper';
-import { TextField } from '../../components/TextField';
-import { colors, font, spacing } from '../../constants/theme';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Screen } from '../../components/ui/Screen';
+import { Stepper } from '../../components/ui/Stepper';
+import { Text } from '../../components/ui/Text';
+import { TextField } from '../../components/ui/TextField';
+import { space } from '../../design/tokens';
+import { useTheme } from '../../design/useTheme';
 import { maxImpostors } from '../../services/gameLogic';
+import { haptics } from '../../services/haptics';
 import { useLocalGameStore } from '../../store/localGameStore';
+import { useSettingsStore } from '../../store/settingsStore';
 import type { ScreenProps } from '../../types/navigation';
 
 const MIN_PLAYERS = 3;
 const MAX_PLAYERS = 12;
 
 export function LocalSetupScreen({ navigation }: ScreenProps<'LocalSetup'>) {
-  const playerNames = useLocalGameStore((s) => s.playerNames);
-  const categoryId = useLocalGameStore((s) => s.categoryId);
-  const impostorCount = useLocalGameStore((s) => s.impostorCount);
-  const timerSeconds = useLocalGameStore((s) => s.timerSeconds);
-  const addPlayer = useLocalGameStore((s) => s.addPlayer);
-  const removePlayer = useLocalGameStore((s) => s.removePlayer);
-  const setCategoryId = useLocalGameStore((s) => s.setCategoryId);
-  const setImpostorCount = useLocalGameStore((s) => s.setImpostorCount);
-  const setTimerSeconds = useLocalGameStore((s) => s.setTimerSeconds);
-  const startGame = useLocalGameStore((s) => s.startGame);
+  const t = useTheme();
+  const game = useLocalGameStore();
+  const defaults = useSettingsStore();
+  const [draft, setDraft] = useState('');
 
-  const [nameDraft, setNameDraft] = useState('');
+  // Seed a fresh setup from the player's saved defaults.
+  useEffect(() => {
+    if (game.playerNames.length === 0) {
+      game.setCategoryId(defaults.defaultCategoryId);
+      game.setImpostorCount(defaults.defaultImpostorCount);
+      game.setTimerSeconds(defaults.defaultTimerSeconds);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const submitName = () => {
-    const name = nameDraft.trim();
-    if (!name || playerNames.length >= MAX_PLAYERS) return;
-    addPlayer(name);
-    setNameDraft('');
+  const submit = () => {
+    const name = draft.trim();
+    if (!name || game.playerNames.length >= MAX_PLAYERS) return;
+    haptics.tap();
+    game.addPlayer(name);
+    setDraft('');
   };
 
-  const impostorCap = maxImpostors(playerNames.length);
-  const canStart = playerNames.length >= MIN_PLAYERS;
+  const cap = maxImpostors(game.playerNames.length);
+  const canStart = game.playerNames.length >= MIN_PLAYERS;
 
   return (
     <Screen scroll>
-      <Text style={styles.heading}>Who's playing?</Text>
-      <TextField
-        value={nameDraft}
-        onChangeText={setNameDraft}
-        placeholder={`Add player ${playerNames.length + 1}`}
-        maxLength={16}
-        autoCapitalize="words"
-        returnKeyType="done"
-        onSubmitEditing={submitName}
-        submitBehavior="submit"
-      />
-      <Button label="Add player" variant="secondary" onPress={submitName} />
-      <PlayerList
-        players={playerNames.map((name, i) => ({ id: String(i), name }))}
-        onRemove={(id) => removePlayer(Number(id))}
-      />
-      {!canStart ? (
-        <Text style={styles.hint}>Add at least {MIN_PLAYERS} players to start.</Text>
-      ) : null}
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="title">Who's playing?</Text>
+        <Text variant="caption" faint>
+          {game.playerNames.length} of {MAX_PLAYERS} · at least {MIN_PLAYERS} to start
+        </Text>
+      </Animated.View>
 
-      <Text style={styles.heading}>Category</Text>
-      <CategoryPicker selectedId={categoryId} onSelect={setCategoryId} />
+      <View style={styles.addRow}>
+        <View style={styles.addField}>
+          <TextField
+            value={draft}
+            onChangeText={setDraft}
+            placeholder={`Player ${game.playerNames.length + 1}`}
+            maxLength={16}
+            autoCapitalize="words"
+            returnKeyType="done"
+            onSubmitEditing={submit}
+            submitBehavior="submit"
+          />
+        </View>
+        <Button label="Add" size="md" onPress={submit} style={styles.addBtn} silent />
+      </View>
 
-      <Text style={styles.heading}>Settings</Text>
-      <Stepper
-        label="Impostors"
-        valueLabel={String(Math.min(impostorCount, impostorCap))}
-        onDecrement={() => setImpostorCount(Math.max(1, impostorCount - 1))}
-        onIncrement={() => setImpostorCount(Math.min(impostorCap, impostorCount + 1))}
-        decrementDisabled={impostorCount <= 1}
-        incrementDisabled={impostorCount >= impostorCap}
-      />
-      <Stepper
-        label="Discussion timer"
-        valueLabel={`${Math.round(timerSeconds / 60)} min`}
-        onDecrement={() => setTimerSeconds(Math.max(60, timerSeconds - 60))}
-        onIncrement={() => setTimerSeconds(Math.min(600, timerSeconds + 60))}
-        decrementDisabled={timerSeconds <= 60}
-        incrementDisabled={timerSeconds >= 600}
-      />
+      <View style={styles.list}>
+        <PlayerList
+          players={game.playerNames.map((name, i) => ({ id: String(i), name }))}
+          onRemove={(id) => game.removePlayer(Number(id))}
+        />
+      </View>
+
+      <Text variant="label" dim uppercase style={styles.sectionLabel}>
+        Category
+      </Text>
+      <CategoryPicker selectedId={game.categoryId} onSelect={game.setCategoryId} />
+
+      <Text variant="label" dim uppercase style={styles.sectionLabel}>
+        Round
+      </Text>
+      <Card>
+        <Stepper
+          label="Impostors"
+          hint={`Up to ${cap} with this group`}
+          value={String(Math.min(game.impostorCount, cap))}
+          onDecrement={() => game.setImpostorCount(Math.max(1, game.impostorCount - 1))}
+          onIncrement={() => game.setImpostorCount(Math.min(cap, game.impostorCount + 1))}
+          minusDisabled={game.impostorCount <= 1}
+          plusDisabled={game.impostorCount >= cap}
+        />
+        <View style={[styles.divider, { backgroundColor: t.stroke }]} />
+        <Stepper
+          label="Discussion"
+          value={`${Math.round(game.timerSeconds / 60)} min`}
+          onDecrement={() => game.setTimerSeconds(Math.max(60, game.timerSeconds - 60))}
+          onIncrement={() => game.setTimerSeconds(Math.min(600, game.timerSeconds + 60))}
+          minusDisabled={game.timerSeconds <= 60}
+          plusDisabled={game.timerSeconds >= 600}
+        />
+      </Card>
 
       <Button
-        label="Start game"
+        label={canStart ? 'Start game' : `Add ${MIN_PLAYERS - game.playerNames.length} more`}
         disabled={!canStart}
         onPress={() => {
-          startGame();
+          haptics.success();
+          game.startGame();
           navigation.replace('LocalReveal');
         }}
+        style={styles.start}
+        silent
       />
+      <Button label="Back" variant="ghost" size="md" onPress={() => navigation.goBack()} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    color: colors.text,
-    fontSize: font.heading,
-    fontWeight: '700',
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.small,
-    marginVertical: spacing.sm,
-  },
+  header: { marginBottom: space.lg, gap: space.xs },
+  addRow: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
+  addField: { flex: 1 },
+  addBtn: { width: 88 },
+  list: { marginTop: space.base },
+  sectionLabel: { marginTop: space.xl, marginBottom: space.md },
+  divider: { height: 1, marginVertical: space.sm },
+  start: { marginTop: space.xl },
 });

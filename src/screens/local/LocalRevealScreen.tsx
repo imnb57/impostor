@@ -1,16 +1,22 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
-import { Button } from '../../components/Button';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { RoleCard } from '../../components/RoleCard';
-import { Screen } from '../../components/Screen';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
 import { getCategory } from '../../constants/categories';
-import { colors, font, spacing } from '../../constants/theme';
+import { radius, space } from '../../design/tokens';
+import { useTheme } from '../../design/useTheme';
+import { haptics } from '../../services/haptics';
 import { useLocalGameStore } from '../../store/localGameStore';
 import type { ScreenProps } from '../../types/navigation';
 
 export function LocalRevealScreen({ navigation }: ScreenProps<'LocalReveal'>) {
+  const t = useTheme();
   const players = useLocalGameStore((s) => s.players);
   const word = useLocalGameStore((s) => s.word);
+  const hint = useLocalGameStore((s) => s.hint);
   const categoryId = useLocalGameStore((s) => s.categoryId);
   const [index, setIndex] = useState(0);
 
@@ -21,53 +27,77 @@ export function LocalRevealScreen({ navigation }: ScreenProps<'LocalReveal'>) {
 
   return (
     <Screen>
-      <Text style={styles.passLabel}>Pass the phone to</Text>
-      <Text style={styles.playerName}>{player.name}</Text>
+      <View style={styles.progress}>
+        {players.map((p, i) => (
+          <View
+            key={p.name + i}
+            style={[
+              styles.pip,
+              {
+                backgroundColor: i < index ? t.accent : i === index ? t.text : t.stroke,
+                width: i === index ? 26 : 8,
+              },
+            ]}
+          />
+        ))}
+      </View>
 
-      {/* key resets the hold-to-reveal state for each player */}
-      <RoleCard
+      <Animated.View
         key={index}
-        isImpostor={player.isImpostor}
-        word={word}
-        categoryName={getCategory(categoryId).name}
-      />
+        entering={FadeInDown.springify().damping(18)}
+        exiting={FadeOut.duration(140)}
+        style={styles.body}
+      >
+        <View style={styles.handoff}>
+          <Text variant="caption" faint center uppercase>
+            Pass the phone to
+          </Text>
+          <Text variant="title" center>
+            {player.name}
+          </Text>
+        </View>
 
-      {isLast ? (
-        <Button
-          label="Everyone's ready — start discussion"
-          onPress={() => navigation.replace('LocalDiscussion')}
+        <RoleCard
+          key={index}
+          isImpostor={player.isImpostor}
+          word={word}
+          hint={hint}
+          categoryName={getCategory(categoryId).name}
         />
-      ) : (
+      </Animated.View>
+
+      <Animated.View entering={FadeIn.delay(300)}>
         <Button
-          label={`Done — pass to ${players[index + 1].name}`}
-          onPress={() => setIndex(index + 1)}
+          label={isLast ? 'Everyone ready — start' : `Done — pass to ${players[index + 1].name}`}
+          onPress={() => {
+            if (isLast) {
+              haptics.success();
+              navigation.replace('LocalDiscussion');
+            } else {
+              haptics.press();
+              setIndex(index + 1);
+            }
+          }}
+          silent
         />
-      )}
-      <Text style={styles.progress}>
-        Player {index + 1} of {players.length}
-      </Text>
+        <Text variant="caption" faint center style={styles.count}>
+          Player {index + 1} of {players.length}
+        </Text>
+      </Animated.View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  passLabel: {
-    color: colors.textDim,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginTop: spacing.xl,
-  },
-  playerName: {
-    color: colors.text,
-    fontSize: font.title,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginTop: spacing.xs,
-  },
   progress: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    marginTop: spacing.md,
+    flexDirection: 'row',
+    gap: space.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: space.sm,
   },
+  pip: { height: 8, borderRadius: radius.pill },
+  body: { flex: 1, justifyContent: 'center', gap: space.lg },
+  handoff: { gap: space.xs },
+  count: { marginTop: space.md },
 });

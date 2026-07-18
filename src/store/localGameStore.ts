@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { CATEGORIES } from '../constants/categories';
-import { maxImpostors, pickWord, sample } from '../services/gameLogic';
+import { maxImpostors, pickRound, sample } from '../services/gameLogic';
 
 export interface LocalPlayer {
   name: string;
@@ -14,6 +14,8 @@ interface LocalGameState {
   timerSeconds: number;
   players: LocalPlayer[];
   word: string;
+  /** Vague clue shown to impostors this round. */
+  hint: string;
   /** voter index -> target index */
   votes: Record<number, number>;
   addPlayer: (name: string) => void;
@@ -33,6 +35,7 @@ export const useLocalGameStore = create<LocalGameState>((set, get) => ({
   timerSeconds: 180,
   players: [],
   word: '',
+  hint: '',
   votes: {},
   addPlayer: (name) =>
     set((s) => ({ playerNames: [...s.playerNames, name] })),
@@ -53,16 +56,18 @@ export const useLocalGameStore = create<LocalGameState>((set, get) => ({
     const impostorIndexes = new Set(
       sample(playerNames.map((_, i) => i), capped),
     );
+    const round = pickRound(categoryId);
     set({
       players: playerNames.map((name, i) => ({
         name,
         isImpostor: impostorIndexes.has(i),
       })),
-      word: pickWord(categoryId),
+      word: round.word,
+      hint: round.hint,
       votes: {},
     });
   },
   castVote: (voter, target) =>
     set((s) => ({ votes: { ...s.votes, [voter]: target } })),
-  resetRound: () => set({ players: [], word: '', votes: {} }),
+  resetRound: () => set({ players: [], word: '', hint: '', votes: {} }),
 }));

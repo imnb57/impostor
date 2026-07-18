@@ -1,9 +1,12 @@
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Button } from '../../components/Button';
-import { Screen } from '../../components/Screen';
-import { colors, font, spacing } from '../../constants/theme';
-import { formatSeconds, useCountdown } from '../../hooks/useCountdown';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { TimerDial } from '../../components/TimerDial';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
+import { space } from '../../design/tokens';
+import { useCountdown } from '../../hooks/useCountdown';
 import { beginVoting } from '../../services/rooms';
 import type { OnlinePhaseProps } from './types';
 
@@ -11,7 +14,7 @@ export function DiscussionView({ room, roomCode, selfUid, onLeave }: OnlinePhase
   const isHost = room.hostId === selfUid;
   const secondsLeft = useCountdown(room.discussionEndsAt);
 
-  // Host's device advances the room when the shared timer expires.
+  // The host's device is the clock of record for the room.
   useEffect(() => {
     if (isHost && room.discussionEndsAt && secondsLeft === 0) {
       beginVoting(roomCode).catch(() => {});
@@ -20,44 +23,34 @@ export function DiscussionView({ room, roomCode, selfUid, onLeave }: OnlinePhase
 
   return (
     <Screen>
-      <View style={styles.center}>
-        <Text style={styles.phase}>💬 Discussion</Text>
-        <Text style={styles.timer}>{formatSeconds(secondsLeft)}</Text>
-        <Text style={styles.rules}>
-          Take turns describing the word without saying it.{'\n'}
-          Impostors: bluff your way through!
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="label" dim uppercase center>
+          Discussion
         </Text>
+      </Animated.View>
+
+      <View style={styles.center}>
+        <TimerDial secondsLeft={secondsLeft} totalSeconds={room.timerSeconds} />
+        <Animated.View entering={FadeIn.delay(400)} style={styles.rules}>
+          <Text variant="body" dim center>
+            Describe the word{'\n'}without saying it.
+          </Text>
+        </Animated.View>
       </View>
-      {isHost ? (
-        <Button label="Skip to voting" variant="secondary" onPress={() => beginVoting(roomCode).catch(() => {})} />
-      ) : null}
-      <Button label="Leave room" variant="ghost" onPress={onLeave} />
+
+      <View style={styles.footer}>
+        {isHost ? (
+          <Button label="Skip to voting" variant="glass" onPress={() => beginVoting(roomCode).catch(() => {})} />
+        ) : null}
+        <Button label="Leave room" variant="ghost" size="md" onPress={onLeave} />
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  phase: {
-    color: colors.textDim,
-    fontSize: font.heading,
-    fontWeight: '600',
-  },
-  timer: {
-    color: colors.text,
-    fontSize: 72,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-    marginVertical: spacing.md,
-  },
-  rules: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+  header: { marginTop: space.sm },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xxl },
+  rules: { gap: space.sm },
+  footer: { gap: space.xs },
 });

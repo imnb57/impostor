@@ -1,12 +1,15 @@
 import { getCategory } from '../constants/categories';
 import type { VoteTally } from '../types';
 
+
 export function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-export function pickWord(categoryId: string): string {
-  return pickRandom(getCategory(categoryId).words);
+/** Picks the round's secret word together with the hint the impostor gets. */
+export function pickRound(categoryId: string): { word: string; hint: string } {
+  const entry = pickRandom(getCategory(categoryId).words);
+  return { word: entry.word, hint: entry.hints.length ? pickRandom(entry.hints) : '' };
 }
 
 /** Pick `count` distinct random items from `items`. */

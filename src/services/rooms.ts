@@ -3,7 +3,7 @@ import { CATEGORIES } from '../constants/categories';
 import type { Room } from '../types';
 import { ensureSignedIn } from './auth';
 import { getDb } from './firebase';
-import { generateRoomCode, maxImpostors, pickWord, sample } from './gameLogic';
+import { generateRoomCode, maxImpostors, pickRound, sample } from './gameLogic';
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -33,6 +33,7 @@ export async function createRoom(hostName: string): Promise<RoomSession> {
       impostorCount: 1,
       timerSeconds: 180,
       word: '',
+      hint: '',
       createdAt: Date.now(),
       players: {
         [uid]: { name: hostName, connected: true, isImpostor: false, hasVoted: false },
@@ -92,9 +93,11 @@ export async function startGame(roomCode: string, room: Room): Promise<void> {
   const playerIds = Object.keys(room.players ?? {});
   const impostorTotal = Math.min(room.impostorCount, maxImpostors(playerIds.length));
   const impostorIds = new Set(sample(playerIds, impostorTotal));
+  const round = pickRound(room.category);
   const updates: Record<string, unknown> = {
     status: 'reveal',
-    word: pickWord(room.category),
+    word: round.word,
+    hint: round.hint,
     votes: null,
     discussionEndsAt: null,
   };
@@ -136,6 +139,7 @@ export async function playAgain(roomCode: string, room: Room): Promise<void> {
   const updates: Record<string, unknown> = {
     status: 'lobby',
     word: '',
+    hint: '',
     votes: null,
     discussionEndsAt: null,
   };

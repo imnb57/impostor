@@ -14,6 +14,8 @@ export interface Room {
   impostorCount: number;
   timerSeconds: number;
   word: string;
+  /** The vague clue handed to the impostor. Empty in rooms made before hints. */
+  hint?: string;
   createdAt: number;
   /** Absolute epoch ms when the discussion phase ends; set by host on phase start. */
   discussionEndsAt?: number;
@@ -22,11 +24,20 @@ export interface Room {
   votes?: Record<string, string>;
 }
 
+/**
+ * A secret word plus the oblique clues an impostor can be given.
+ * Hints must gesture at the word without ever naming it.
+ */
+export interface WordEntry {
+  word: string;
+  hints: string[];
+}
+
 export interface Category {
   id: string;
   name: string;
   emoji: string;
-  words: string[];
+  words: WordEntry[];
 }
 
 export interface VoteTally {

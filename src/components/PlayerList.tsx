@@ -1,5 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, font, radius, spacing } from '../constants/theme';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, Layout } from 'react-native-reanimated';
+import { radius, space } from '../design/tokens';
+import { useTheme } from '../design/useTheme';
+import { haptics } from '../services/haptics';
+import { Text } from './ui/Text';
 
 export interface PlayerListItem {
   id: string;
@@ -14,60 +18,70 @@ interface Props {
 }
 
 export function PlayerList({ players, onRemove }: Props) {
+  const t = useTheme();
+
   return (
     <View style={styles.list}>
-      {players.map((player) => (
-        <View key={player.id} style={styles.row}>
-          <Text style={[styles.name, player.dimmed && styles.dimmed]} numberOfLines={1}>
-            {player.name}
-          </Text>
-          {player.badge ? <Text style={styles.badge}>{player.badge}</Text> : null}
+      {players.map((player, i) => (
+        <Animated.View
+          key={player.id}
+          entering={FadeInDown.delay(i * 45).springify().damping(18)}
+          exiting={FadeOut.duration(160)}
+          layout={Layout.springify().damping(20)}
+          style={[styles.row, { backgroundColor: t.surface, borderColor: t.stroke }]}
+        >
+          <View style={[styles.avatar, { backgroundColor: t.surfacePressed, borderColor: t.stroke }]}>
+            <Text variant="bodyStrong" color={t.textDim}>
+              {player.name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.names}>
+            <Text variant="bodyStrong" dim={player.dimmed} numberOfLines={1}>
+              {player.name}
+            </Text>
+            {player.badge ? (
+              <Text variant="caption" faint>
+                {player.badge}
+              </Text>
+            ) : null}
+          </View>
           {onRemove ? (
-            <Pressable onPress={() => onRemove(player.id)} style={styles.remove}>
-              <Text style={styles.removeText}>✕</Text>
+            <Pressable
+              hitSlop={10}
+              onPress={() => {
+                haptics.tap();
+                onRemove(player.id);
+              }}
+            >
+              <Text variant="bodyStrong" color={t.textFaint}>
+                ✕
+              </Text>
             </Pressable>
           ) : null}
-        </View>
+        </Animated.View>
       ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  list: {
-    gap: spacing.sm,
-    marginVertical: spacing.sm,
-  },
+  list: { gap: space.sm },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
+    gap: space.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    paddingVertical: space.md,
+    paddingHorizontal: space.base,
   },
-  name: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '600',
-    flex: 1,
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  dimmed: {
-    color: colors.textDim,
-  },
-  badge: {
-    color: colors.textDim,
-    fontSize: font.small,
-    marginLeft: spacing.sm,
-  },
-  remove: {
-    marginLeft: spacing.md,
-    padding: spacing.xs,
-  },
-  removeText: {
-    color: colors.danger,
-    fontSize: font.body,
-  },
+  names: { flex: 1, gap: 1 },
 });

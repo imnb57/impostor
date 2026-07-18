@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
-import { Button } from '../../components/Button';
-import { Screen } from '../../components/Screen';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { VoteGrid } from '../../components/VoteGrid';
-import { colors, font, spacing } from '../../constants/theme';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
+import { space } from '../../design/tokens';
+import { haptics } from '../../services/haptics';
 import { useLocalGameStore } from '../../store/localGameStore';
 import type { ScreenProps } from '../../types/navigation';
 
@@ -18,8 +21,9 @@ export function LocalVotingScreen({ navigation }: ScreenProps<'LocalVoting'>) {
   const voter = players[index];
   if (!voter) return <Screen>{null}</Screen>;
 
-  const confirmVote = () => {
+  const confirm = () => {
     if (selected === null) return;
+    haptics.success();
     castVote(index, Number(selected));
     if (index === players.length - 1) {
       navigation.replace('LocalResults');
@@ -32,22 +36,34 @@ export function LocalVotingScreen({ navigation }: ScreenProps<'LocalVoting'>) {
 
   return (
     <Screen scroll>
-      <Text style={styles.phase}>🗳️ Voting</Text>
-      <Text style={styles.playerName}>{voter.name}</Text>
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="label" dim uppercase center>
+          Voting · {index + 1} of {players.length}
+        </Text>
+        <Text variant="title" center>
+          {voter.name}
+        </Text>
+      </Animated.View>
 
       {!handedOver ? (
-        <>
-          <Text style={styles.hint}>
-            Pass the phone to {voter.name}. Votes stay secret until the end.
+        <Animated.View key="handoff" entering={FadeIn} exiting={FadeOut.duration(140)} style={styles.block}>
+          <Text variant="body" dim center>
+            Pass the phone to {voter.name}.{'\n'}Votes stay secret until the end.
           </Text>
           <Button
-            label={`I'm ${voter.name} — cast my vote`}
-            onPress={() => setHandedOver(true)}
+            label={`I'm ${voter.name}`}
+            onPress={() => {
+              haptics.press();
+              setHandedOver(true);
+            }}
+            silent
           />
-        </>
+        </Animated.View>
       ) : (
-        <>
-          <Text style={styles.hint}>Who is the impostor?</Text>
+        <Animated.View key="vote" entering={FadeIn} style={styles.block}>
+          <Text variant="subheading" center>
+            Who is the impostor?
+          </Text>
           <VoteGrid
             options={players
               .map((p, i) => ({ id: String(i), name: p.name }))
@@ -55,42 +71,14 @@ export function LocalVotingScreen({ navigation }: ScreenProps<'LocalVoting'>) {
             selectedId={selected}
             onSelect={setSelected}
           />
-          <Button label="Confirm vote" disabled={selected === null} onPress={confirmVote} />
-        </>
+          <Button label="Lock in vote" disabled={selected === null} onPress={confirm} silent />
+        </Animated.View>
       )}
-      <Text style={styles.progress}>
-        Vote {index + 1} of {players.length}
-      </Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  phase: {
-    color: colors.textDim,
-    fontSize: font.heading,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginTop: spacing.lg,
-  },
-  playerName: {
-    color: colors.text,
-    fontSize: font.title,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginTop: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginVertical: spacing.md,
-  },
-  progress: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    marginTop: spacing.lg,
-  },
+  header: { marginTop: space.lg, marginBottom: space.xl, gap: space.xs },
+  block: { gap: space.lg },
 });

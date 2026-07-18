@@ -1,16 +1,21 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
-import { Button } from '../../components/Button';
-import { Screen } from '../../components/Screen';
-import { TextField } from '../../components/TextField';
-import { colors, font, spacing } from '../../constants/theme';
+import { Alert, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
+import { TextField } from '../../components/ui/TextField';
+import { space } from '../../design/tokens';
+import { useTheme } from '../../design/useTheme';
 import { isFirebaseConfigured } from '../../services/firebase';
+import { haptics } from '../../services/haptics';
 import { createRoom, joinRoom, RoomSession } from '../../services/rooms';
 import { useRoomStore } from '../../store/roomStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import type { ScreenProps } from '../../types/navigation';
 
 export function OnlineEntryScreen({ navigation }: ScreenProps<'OnlineEntry'>) {
+  const t = useTheme();
   const playerName = useSettingsStore((s) => s.playerName);
   const lastRoomCode = useSettingsStore((s) => s.lastRoomCode);
   const setLastRoomCode = useSettingsStore((s) => s.setLastRoomCode);
@@ -22,33 +27,40 @@ export function OnlineEntryScreen({ navigation }: ScreenProps<'OnlineEntry'>) {
   if (!isFirebaseConfigured) {
     return (
       <Screen>
-        <Text style={styles.heading}>Online mode isn't configured yet</Text>
-        <Text style={styles.hint}>
-          Copy .env.example to .env, fill in your Firebase web app credentials, and
-          restart the dev server. Pass & Play works without any setup.
-        </Text>
-        <Button label="Back" variant="secondary" onPress={() => navigation.goBack()} />
+        <View style={styles.center}>
+          <Text style={styles.emoji}>🔌</Text>
+          <Text variant="heading" center>
+            Online isn't configured
+          </Text>
+          <Text variant="body" dim center>
+            Add your Firebase keys to .env and restart. Pass &amp; Play works without setup.
+          </Text>
+          <Button label="Back" variant="glass" onPress={() => navigation.goBack()} />
+        </View>
       </Screen>
     );
   }
 
   const name = playerName.trim();
 
-  const enterRoom = async (action: () => Promise<RoomSession>) => {
+  const enter = async (action: () => Promise<RoomSession>) => {
     if (!name) {
+      haptics.warning();
       Alert.alert('Name needed', 'Set your name on the home screen first.');
       return;
     }
     setBusy(true);
     try {
       const session = await action();
+      haptics.success();
       setSession(session.roomCode, session.uid);
       setLastRoomCode(session.roomCode);
       navigation.replace('OnlineRoom', { roomCode: session.roomCode });
     } catch (error) {
+      haptics.error();
       Alert.alert(
         'Could not enter room',
-        error instanceof Error ? error.message : 'Something went wrong — try again.',
+        error instanceof Error ? error.message : 'Something went wrong.',
       );
     } finally {
       setBusy(false);
@@ -58,68 +70,70 @@ export function OnlineEntryScreen({ navigation }: ScreenProps<'OnlineEntry'>) {
   const joinCode = codeDraft.trim().toUpperCase();
 
   return (
-    <Screen>
-      <Text style={styles.heading}>Play online</Text>
-      <Text style={styles.hint}>Playing as {name || '…'}</Text>
+    <Screen scroll>
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="title">Play online</Text>
+        <Text variant="caption" faint>
+          Playing as {name || 'nobody yet'}
+        </Text>
+      </Animated.View>
 
-      <Button
-        label="Create a room"
-        disabled={busy}
-        onPress={() => enterRoom(() => createRoom(name))}
-      />
+      <Animated.View entering={FadeInDown.delay(80).springify().damping(18)}>
+        <Button
+          label="Create a room"
+          disabled={busy}
+          onPress={() => enter(() => createRoom(name))}
+          silent
+        />
+      </Animated.View>
 
-      <View style={styles.divider} />
+      <View style={styles.orRow}>
+        <View style={[styles.rule, { backgroundColor: t.stroke }]} />
+        <Text variant="caption" faint>
+          or join one
+        </Text>
+        <View style={[styles.rule, { backgroundColor: t.stroke }]} />
+      </View>
 
-      <Text style={styles.label}>Join with a room code</Text>
-      <TextField
-        value={codeDraft}
-        onChangeText={setCodeDraft}
-        placeholder="e.g. QK7M"
-        autoCapitalize="characters"
-        autoCorrect={false}
-        maxLength={6}
-      />
-      <Button
-        label="Join room"
-        variant="secondary"
-        disabled={busy || joinCode.length < 4}
-        onPress={() => enterRoom(() => joinRoom(joinCode, name))}
-      />
+      <Animated.View entering={FadeInDown.delay(140).springify().damping(18)} style={styles.joinBlock}>
+        <TextField
+          code
+          value={codeDraft}
+          onChangeText={(v) => setCodeDraft(v.toUpperCase())}
+          placeholder="CODE"
+          autoCapitalize="characters"
+          autoCorrect={false}
+          maxLength={6}
+        />
+        <Button
+          label="Join room"
+          variant="glass"
+          disabled={busy || joinCode.length < 4}
+          onPress={() => enter(() => joinRoom(joinCode, name))}
+          silent
+        />
+      </Animated.View>
 
       {lastRoomCode ? (
         <Button
-          label={`Rejoin last room — ${lastRoomCode}`}
+          label={`Rejoin ${lastRoomCode}`}
           variant="ghost"
+          size="md"
           disabled={busy}
-          onPress={() => enterRoom(() => joinRoom(lastRoomCode, name))}
+          onPress={() => enter(() => joinRoom(lastRoomCode, name))}
         />
       ) : null}
+
+      <Button label="Back" variant="ghost" size="md" onPress={() => navigation.goBack()} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    color: colors.text,
-    fontSize: font.heading,
-    fontWeight: '800',
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.body,
-    marginBottom: spacing.lg,
-    lineHeight: 24,
-  },
-  label: {
-    color: colors.textDim,
-    fontSize: font.small,
-    marginBottom: spacing.xs,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.lg,
-  },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.base },
+  emoji: { fontSize: 52, lineHeight: 60 },
+  header: { marginBottom: space.xl, gap: space.xs },
+  orRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginVertical: space.xl },
+  rule: { flex: 1, height: 1 },
+  joinBlock: { gap: space.md },
 });

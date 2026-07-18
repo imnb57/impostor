@@ -1,5 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, font, radius, spacing } from '../constants/theme';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { space } from '../design/tokens';
+import { useTheme } from '../design/useTheme';
+import { Card } from './ui/Card';
+import { Text } from './ui/Text';
 
 export interface VoteOption {
   id: string;
@@ -13,20 +17,37 @@ interface Props {
 }
 
 export function VoteGrid({ options, selectedId, onSelect }: Props) {
+  const t = useTheme();
+
   return (
     <View style={styles.grid}>
-      {options.map((option) => {
+      {options.map((option, i) => {
         const selected = option.id === selectedId;
         return (
-          <Pressable
+          <Animated.View
             key={option.id}
-            onPress={() => onSelect(option.id)}
-            style={[styles.cell, selected && styles.cellSelected]}
+            entering={FadeInDown.delay(i * 50).springify().damping(18)}
+            style={styles.cell}
           >
-            <Text style={[styles.cellText, selected && styles.cellTextSelected]} numberOfLines={1}>
-              {option.name}
-            </Text>
-          </Pressable>
+            <Card active={selected} onPress={() => onSelect(option.id)} style={styles.card}>
+              <View
+                style={[
+                  styles.avatar,
+                  {
+                    backgroundColor: selected ? t.accent : t.surfacePressed,
+                    borderColor: selected ? t.accent : t.stroke,
+                  },
+                ]}
+              >
+                <Text variant="bodyStrong" color={selected ? t.onAccent : t.textDim}>
+                  {option.name.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+              <Text variant="bodyStrong" center numberOfLines={1}>
+                {option.name}
+              </Text>
+            </Card>
+          </Animated.View>
         );
       })}
     </View>
@@ -34,33 +55,15 @@ export function VoteGrid({ options, selectedId, onSelect }: Props) {
 }
 
 const styles = StyleSheet.create({
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginVertical: spacing.md,
-  },
-  cell: {
-    flexBasis: '47%',
-    flexGrow: 1,
-    backgroundColor: colors.card,
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  cell: { flexBasis: '47.5%', flexGrow: 1 },
+  card: { alignItems: 'center', gap: space.sm, paddingVertical: space.lg },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
     alignItems: 'center',
-  },
-  cellSelected: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  cellText: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '600',
-  },
-  cellTextSelected: {
-    color: colors.text,
+    justifyContent: 'center',
   },
 });

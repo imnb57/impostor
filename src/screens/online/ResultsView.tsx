@@ -1,133 +1,106 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { Button } from '../../components/Button';
-import { Screen } from '../../components/Screen';
-import { colors, font, radius, spacing } from '../../constants/theme';
+import { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, ZoomIn } from 'react-native-reanimated';
+import { VoteTally } from '../../components/VoteTally';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
+import { space } from '../../design/tokens';
+import { useTheme } from '../../design/useTheme';
 import { tallyVotes } from '../../services/gameLogic';
+import { haptics } from '../../services/haptics';
 import { playAgain } from '../../services/rooms';
 import type { OnlinePhaseProps } from './types';
 
 export function ResultsView({ room, roomCode, selfUid, onLeave }: OnlinePhaseProps) {
+  const t = useTheme();
   const isHost = room.hostId === selfUid;
   const players = room.players ?? {};
   const tally = tallyVotes(room.votes ?? {});
-  const isTie = tally.topTargets.length !== 1;
-  const votedOutUid = isTie ? null : tally.topTargets[0];
+  const tied = tally.topTargets.length !== 1;
+  const votedOutUid = tied ? null : tally.topTargets[0];
   const votedOut = votedOutUid ? players[votedOutUid] : null;
-  const impostorNames = Object.values(players)
-    .filter((p) => p.isImpostor)
-    .map((p) => p.name);
+  const impostorNames = Object.values(players).filter((p) => p.isImpostor).map((p) => p.name);
   const crewWins = votedOut?.isImpostor ?? false;
+  const selfWasImpostor = players[selfUid]?.isImpostor ?? false;
+  const selfWon = selfWasImpostor ? !crewWins : crewWins;
+
+  useEffect(() => {
+    const id = setTimeout(() => (selfWon ? haptics.success() : haptics.error()), 260);
+    return () => clearTimeout(id);
+  }, [selfWon]);
 
   return (
     <Screen scroll>
-      <Text style={styles.verdict}>
-        {crewWins ? '🎉 Impostor caught!' : '😈 The impostor got away!'}
-      </Text>
-      <Text style={styles.votedOut}>
-        {votedOut
-          ? `${votedOut.name} was voted out.`
-          : 'The vote was tied — no one was voted out.'}
-      </Text>
-
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>
-          {impostorNames.length === 1 ? 'The impostor was' : 'The impostors were'}
+      <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.verdict}>
+        <Text style={styles.emoji}>{crewWins ? '🎉' : '😈'}</Text>
+        <Text variant="title" center color={crewWins ? t.success : t.accent}>
+          {crewWins ? 'Impostor caught!' : 'The impostor got away'}
         </Text>
-        <Text style={styles.cardValue}>{impostorNames.join(', ') || '—'}</Text>
-        <Text style={styles.cardLabel}>The word was</Text>
-        <Text style={styles.cardValue}>{room.word}</Text>
-      </View>
+        <Text variant="body" dim center>
+          {votedOut ? `${votedOut.name} was voted out.` : 'The vote was tied — nobody went home.'}
+        </Text>
+        <Text variant="caption" color={selfWon ? t.success : t.textFaint} center>
+          {selfWon ? 'You won this round' : 'You lost this round'}
+        </Text>
+      </Animated.View>
 
-      <Text style={styles.tallyHeading}>Votes</Text>
-      {Object.entries(players)
-        .map(([uid, p]) => ({ name: p.name, count: tally.counts[uid] ?? 0 }))
-        .sort((a, b) => b.count - a.count)
-        .map((row) => (
-          <View key={row.name + row.count} style={styles.tallyRow}>
-            <Text style={styles.tallyName}>{row.name}</Text>
-            <Text style={styles.tallyCount}>
-              {row.count} vote{row.count === 1 ? '' : 's'}
-            </Text>
-          </View>
-        ))}
+      <Animated.View entering={FadeInDown.delay(220).springify().damping(18)}>
+        <Card style={styles.reveal}>
+          <Text variant="label" faint uppercase center>
+            {impostorNames.length === 1 ? 'The impostor was' : 'The impostors were'}
+          </Text>
+          <Text variant="heading" center color={t.accent}>
+            {impostorNames.join(' · ') || '—'}
+          </Text>
+          <View style={[styles.divider, { backgroundColor: t.stroke }]} />
+          <Text variant="label" faint uppercase center>
+            The word was
+          </Text>
+          <Text variant="heading" center color={t.accentEnd}>
+            {room.word}
+          </Text>
+        </Card>
+      </Animated.View>
 
-      <View style={styles.buttons}>
+      <Animated.View entering={FadeIn.delay(400)}>
+        <VoteTally
+          rows={Object.entries(players).map(([uid, p]) => ({
+            id: uid,
+            name: p.name,
+            count: tally.counts[uid] ?? 0,
+            highlight: p.isImpostor,
+          }))}
+          total={Object.keys(room.votes ?? {}).length}
+        />
+      </Animated.View>
+
+      <View style={styles.actions}>
         {isHost ? (
           <Button
-            label="Play again — back to lobby"
-            onPress={() => playAgain(roomCode, room).catch(() => {})}
+            label="Play again"
+            onPress={() => {
+              haptics.press();
+              playAgain(roomCode, room).catch(() => {});
+            }}
+            silent
           />
         ) : (
-          <Text style={styles.hint}>Waiting for the host to start a new round…</Text>
+          <Text variant="caption" dim center>
+            Waiting for the host to start a new round…
+          </Text>
         )}
-        <Button label="Leave room" variant="ghost" onPress={onLeave} />
+        <Button label="Leave room" variant="ghost" size="md" onPress={onLeave} />
       </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  verdict: {
-    color: colors.text,
-    fontSize: font.heading,
-    fontWeight: '800',
-    textAlign: 'center',
-    marginTop: spacing.lg,
-  },
-  votedOut: {
-    color: colors.textDim,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-  },
-  card: {
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-    gap: spacing.xs,
-  },
-  cardLabel: {
-    color: colors.textDim,
-    fontSize: font.small,
-    marginTop: spacing.sm,
-  },
-  cardValue: {
-    color: colors.secondary,
-    fontSize: font.heading,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  tallyHeading: {
-    color: colors.text,
-    fontSize: font.body,
-    fontWeight: '700',
-    marginBottom: spacing.sm,
-  },
-  tallyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.xs,
-  },
-  tallyName: {
-    color: colors.text,
-    fontSize: font.body,
-  },
-  tallyCount: {
-    color: colors.textDim,
-    fontSize: font.body,
-  },
-  hint: {
-    color: colors.textDim,
-    fontSize: font.body,
-    textAlign: 'center',
-    marginVertical: spacing.sm,
-  },
-  buttons: {
-    marginTop: spacing.xl,
-    gap: spacing.sm,
-  },
+  verdict: { alignItems: 'center', gap: space.sm, marginTop: space.xl, marginBottom: space.xl },
+  emoji: { fontSize: 64, lineHeight: 72 },
+  reveal: { gap: space.xs, alignItems: 'center' },
+  divider: { height: 1, alignSelf: 'stretch', marginVertical: space.base },
+  actions: { marginTop: space.xxl, gap: space.sm },
 });

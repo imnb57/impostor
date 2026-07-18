@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { Button } from '../../components/Button';
-import { Screen } from '../../components/Screen';
-import { colors, font, spacing } from '../../constants/theme';
-import { formatSeconds, useCountdown } from '../../hooks/useCountdown';
+import { StyleSheet, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { TimerDial } from '../../components/TimerDial';
+import { Button } from '../../components/ui/Button';
+import { Screen } from '../../components/ui/Screen';
+import { Text } from '../../components/ui/Text';
+import { space } from '../../design/tokens';
+import { useCountdown } from '../../hooks/useCountdown';
 import { useLocalGameStore } from '../../store/localGameStore';
 import type { ScreenProps } from '../../types/navigation';
 
@@ -18,57 +21,41 @@ export function LocalDiscussionScreen({ navigation }: ScreenProps<'LocalDiscussi
   const secondsLeft = useCountdown(endsAt);
 
   useEffect(() => {
-    if (secondsLeft === 0) {
-      navigation.replace('LocalVoting');
-    }
+    if (secondsLeft === 0) navigation.replace('LocalVoting');
   }, [secondsLeft, navigation]);
 
   return (
     <Screen>
-      <View style={styles.center}>
-        <Text style={styles.phase}>💬 Discussion</Text>
-        <Text style={styles.timer}>{formatSeconds(secondsLeft)}</Text>
-        {players[starter] ? (
-          <Text style={styles.hint}>{players[starter].name} describes the word first.</Text>
-        ) : null}
-        <Text style={styles.rules}>
-          Take turns describing the word without saying it.{'\n'}
-          Impostors: bluff your way through!
+      <Animated.View entering={FadeInDown.springify().damping(18)} style={styles.header}>
+        <Text variant="label" dim uppercase center>
+          Discussion
         </Text>
+      </Animated.View>
+
+      <View style={styles.center}>
+        <TimerDial
+          secondsLeft={secondsLeft}
+          totalSeconds={timerSeconds}
+          caption={players[starter] ? `${players[starter].name} starts` : undefined}
+        />
+
+        <Animated.View entering={FadeIn.delay(400)} style={styles.rules}>
+          <Text variant="body" dim center>
+            Take turns describing the word{'\n'}without saying it.
+          </Text>
+          <Text variant="caption" faint center>
+            Impostors: bluff your way through.
+          </Text>
+        </Animated.View>
       </View>
-      <Button label="Vote now" onPress={() => navigation.replace('LocalVoting')} />
+
+      <Button label="Vote now" variant="glass" onPress={() => navigation.replace('LocalVoting')} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  phase: {
-    color: colors.textDim,
-    fontSize: font.heading,
-    fontWeight: '600',
-  },
-  timer: {
-    color: colors.text,
-    fontSize: 72,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-    marginVertical: spacing.md,
-  },
-  hint: {
-    color: colors.secondary,
-    fontSize: font.body,
-    fontWeight: '600',
-    marginBottom: spacing.md,
-  },
-  rules: {
-    color: colors.textDim,
-    fontSize: font.small,
-    textAlign: 'center',
-    lineHeight: 22,
-  },
+  header: { marginTop: space.sm },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: space.xxl },
+  rules: { gap: space.sm },
 });
