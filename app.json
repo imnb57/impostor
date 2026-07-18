@@ -3,14 +3,18 @@
     "name": "Impostor",
     "slug": "impostor",
     "version": "1.0.0",
+    "scheme": "impostor",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0F1220",
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.imnb57.impostor"
     },
     "android": {
+      "package": "com.imnb57.impostor",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#0F1220",
         "foregroundImage": "./assets/android-icon-foreground.png",

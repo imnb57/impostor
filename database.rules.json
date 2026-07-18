@@ -3,7 +3,11 @@
     "rooms": {
       "$roomCode": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null",
+        ".validate": "$roomCode.matches(/^[A-Z0-9]{4,6}$/) && newData.hasChildren(['hostId', 'status', 'createdAt'])",
+        "status": {
+          ".validate": "newData.isString() && (newData.val() == 'lobby' || newData.val() == 'reveal' || newData.val() == 'discussion' || newData.val() == 'voting' || newData.val() == 'results')"
+        }
       }
     }
   }

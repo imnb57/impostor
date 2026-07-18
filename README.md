@@ -34,6 +34,58 @@ The anonymous auth UID is persisted in AsyncStorage, so players who close the
 app can rejoin the same room code and pick up where they left off
 ("Rejoin last room" on the online screen).
 
+## Google sign-in (optional profile)
+
+Players can attach a Google account (name + avatar) on the home screen. It links
+onto the anonymous session, so the game UID — and any in-progress room — is kept.
+
+1. Firebase console → **Authentication → Sign-in method** → enable **Google**.
+   Copy the **Web client ID** shown in the provider panel into
+   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`.
+2. [Google Cloud console](https://console.cloud.google.com/apis/credentials)
+   (same project) → **Create OAuth client ID → Android**:
+   - Package name: `com.imnb57.impostor`
+   - SHA-1: from `npx eas-cli credentials` (Android → your keystore)
+   Put the resulting ID in `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`.
+
+Note: Google sign-in only works in a **built app** (APK/AAB or dev build) — the
+button is disabled inside Expo Go, where the app's OAuth redirect scheme doesn't
+exist. Everything else works in Expo Go.
+
+## Build an APK to share (EAS)
+
+```bash
+npm install -g eas-cli        # or use npx eas-cli
+eas login                     # your Expo account
+eas init                      # links the project (creates the EAS project id)
+eas env:create --scope project   # add every EXPO_PUBLIC_* var for the
+                                  # "preview" and "production" environments —
+                                  # .env is gitignored and never uploaded
+eas build -p android --profile preview
+```
+
+The `preview` profile produces an installable **.apk** you can send to anyone
+(they must enable "install unknown apps"). Build status and the download link
+appear at expo.dev.
+
+## Play Store checklist
+
+1. `eas build -p android --profile production` → produces an **.aab**.
+2. Play Console: create the app, upload the .aab to **Internal testing** first.
+3. `eas submit -p android` can automate uploads once you add a service account key.
+4. Required before review:
+   - **App icons/splash**: replace the placeholder images in `assets/`.
+   - **Privacy policy URL** — required because the app uses Firebase Auth
+     (Google sign-in collects name/email/photo; anonymous auth stores a device
+     identifier).
+   - **Data safety form**: declare Firebase Auth (identifiers, name, email) and
+     Realtime Database (player names, votes) collection.
+   - **Content rating questionnaire** (this app: no user-generated chat, no ads yet).
+5. Package name `com.imnb57.impostor` is set in `app.json` — change it *before*
+   the first Play upload if you want a different one; it's permanent afterwards.
+6. Deploy `database.rules.json` to Realtime Database rules (console → Rules tab)
+   — test mode expires and leaves the DB open.
+
 ## Scripts
 
 | Command | What it does |
